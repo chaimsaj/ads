@@ -1,0 +1,104 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-10);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-400);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.card:hover {
+  border-color: var(--color-primary-800);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-primary-800);
+  outline-offset: 2px;
+}
+
+.selected {
+  border-color: var(--color-primary-800);
+  border-width: 2px;
+  background-color: var(--color-secondary-100);
+}
+
+.radioContainer {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+}
+
+.radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-gray-500);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.radioSelected {
+  border-color: var(--color-primary-800);
+}
+
+.radioDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-primary-800);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.description {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--space-4);
+  color: var(--color-primary-800);
+}
+
+.icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.imageContainer {
+  margin-top: var(--space-6);
+  width: 100%;
+  max-width: 200px;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}

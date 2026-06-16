@@ -1,0 +1,126 @@
+.wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-100);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-white);
+}
+
+.thead {
+  background-color: var(--color-neutral-50);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.th {
+  padding: var(--space-6) var(--space-8);
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-600);
+  white-space: nowrap;
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: var(--color-primary-800);
+}
+
+.sorted {
+  color: var(--color-primary-800);
+  background-color: var(--color-primary-50);
+}
+
+.sortIcon {
+  display: flex;
+  align-items: center;
+}
+
+.sortIconInactive {
+  opacity: 0.3;
+}
+
+.tbody {
+  /* Body styles */
+}
+
+.tr {
+  border-bottom: 1px solid var(--color-neutral-100);
+  transition: background-color var(--transition-fast);
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background-color: var(--color-neutral-50);
+}
+
+.tr.selected {
+  background-color: var(--color-primary-50);
+}
+
+.td {
+  padding: var(--space-6) var(--space-8);
+  font-size: var(--text-base);
+  color: var(--color-neutral-800);
+  vertical-align: middle;
+}
+
+.checkboxCell {
+  width: 40px;
+  padding: var(--space-6) var(--space-6);
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary-800);
+}
+
+.emptyCell {
+  padding: var(--space-16);
+  text-align: center;
+  color: var(--color-neutral-500);
+  font-size: var(--text-base);
+}
+
+/* Skeleton loading */
+.skeleton {
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-100) 25%,
+    var(--color-neutral-200) 50%,
+    var(--color-neutral-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 150px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

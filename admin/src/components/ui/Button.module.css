@@ -1,0 +1,122 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-medium);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Variants */
+.primary {
+  background-color: var(--color-primary-800);
+  color: var(--color-white);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: var(--color-primary-900);
+}
+
+.secondary {
+  background-color: var(--color-secondary-100);
+  color: var(--color-primary-800);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-200);
+}
+
+.outline {
+  background-color: transparent;
+  color: var(--color-primary-800);
+  border: 1px solid var(--color-primary-800);
+}
+
+.outline:hover:not(:disabled) {
+  background-color: var(--color-primary-50);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--color-neutral-700);
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: var(--color-neutral-100);
+}
+
+.danger {
+  background-color: var(--color-error);
+  color: var(--color-white);
+}
+
+.danger:hover:not(:disabled) {
+  background-color: #d63027;
+}
+
+/* Sizes */
+.sm {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  height: 32px;
+}
+
+.md {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--text-base);
+  height: 40px;
+}
+
+.lg {
+  padding: var(--space-5) var(--space-10);
+  font-size: var(--text-md);
+  height: 48px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.loading {
+  position: relative;
+  color: transparent;
+}
+
+.spinner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.loading .spinner {
+  color: var(--color-white);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

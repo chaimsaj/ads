@@ -1,0 +1,250 @@
+.dashboard {
+  padding: var(--space-12);
+}
+
+.header {
+  margin-bottom: var(--space-12);
+}
+
+.title {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.subtitle {
+  font-size: var(--text-md);
+  color: var(--color-neutral-500);
+  margin: 0;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
+}
+
+@media (max-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Stat Card */
+.statCard {
+  padding: var(--space-10);
+}
+
+.statHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statIcon.primary {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-800);
+}
+
+.statIcon.success {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.statIcon.warning {
+  background-color: var(--color-warning-light);
+  color: #b8860b;
+}
+
+.statIcon.info {
+  background-color: var(--color-info-light);
+  color: var(--color-info);
+}
+
+.statChange {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+}
+
+.statChange.positive {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.statChange.negative {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.statBody {
+  /* stat body */
+}
+
+.statValue {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.statTitle {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+  margin: 0;
+}
+
+/* Content Grid */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-8);
+}
+
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.activityCard {
+  /* activity card */
+}
+
+.emptyActivity {
+  text-align: center;
+  padding: var(--space-12) var(--space-8);
+  color: var(--color-neutral-400);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.activityList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activityItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  padding: var(--space-6) 0;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.activityDot.user {
+  background-color: var(--color-primary-500);
+}
+
+.activityDot.campaign {
+  background-color: var(--color-info);
+}
+
+.activityDot.payment {
+  background-color: var(--color-success);
+}
+
+.activityContent {
+  flex: 1;
+}
+
+.activityMessage {
+  font-size: var(--text-base);
+  color: var(--color-neutral-800);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.activityTime {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-400);
+}
+
+/* Quick Actions */
+.quickActions {
+  /* quick actions card */
+}
+
+.quickStatsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.quickStat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-6);
+  background-color: var(--color-neutral-50);
+  border-radius: var(--radius-lg);
+}
+
+.quickStatLabel {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+}
+
+.quickStatValue {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-900);
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-100) 25%,
+    var(--color-neutral-200) 50%,
+    var(--color-neutral-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,0 +1,220 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: var(--text-sm);
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.helperText {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+/* Social Buttons */
+.socialButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.socialBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  background-color: var(--color-facebook);
+  color: var(--color-white);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.socialBtn:hover {
+  opacity: 0.9;
+}
+
+.socialBtnGoogle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  background-color: var(--color-white);
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--color-gray-400);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.socialBtnGoogle:hover {
+  background-color: var(--color-gray-100);
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-gray-300);
+}
+
+.divider span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Checkbox */
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  margin-top: 2px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.footer p {
+  margin: var(--space-2) 0;
+}
+
+.link {
+  color: var(--color-primary-800);
+  text-decoration: underline;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: var(--color-primary-800);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+}
+
+/* Verify Email */
+.verifyContent {
+  text-align: center;
+}
+
+.verifyText {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.securityNote {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}
+
+.verifyForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.codeInputs {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.codeInput {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  border: 1px solid var(--color-gray-400);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-fast);
+}
+
+.codeInput:focus {
+  outline: none;
+  border-color: var(--color-primary-800);
+}
+
+.resendSection {
+  margin-top: var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Forgot Password */
+.forgotContent {
+  text-align: center;
+}
+
+.forgotText {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-8);
+}
+
+/* Check Email */
+.checkEmailContent {
+  text-align: center;
+}
+
+.emailIcon {
+  margin-bottom: var(--space-8);
+}
+
+.checkEmailTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.checkEmailText {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.checkEmailNote {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}

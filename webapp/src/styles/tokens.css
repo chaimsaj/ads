@@ -1,0 +1,179 @@
+:root {
+  /* Primary Colors - Teal */
+  --color-primary-900: #07393c;
+  --color-primary-800: #2c666e;
+  --color-primary-700: #2d666f;
+  --color-primary-600: #41757d;
+  --color-primary-500: #4a7277;
+
+  /* Secondary Colors - Cyan */
+  --color-secondary-100: #eefcff;
+  --color-secondary-200: #d6f7ff;
+  --color-secondary-300: #93d6ea;
+  --color-secondary-400: #90ddf0;
+  --color-secondary-500: #bfd6d8;
+
+  /* Neutral Colors */
+  --color-white: #ffffff;
+  --color-gray-50: #f0edee;
+  --color-gray-100: #ebebeb;
+  --color-gray-200: #e8e8e8;
+  --color-gray-300: #e0e0e0;
+  --color-gray-400: #d9d9d9;
+  --color-gray-500: #bdbdbd;
+  --color-gray-600: #a3a3a3;
+  --color-gray-700: #828282;
+  --color-gray-800: #4f4f4f;
+  --color-gray-900: #222222;
+
+  /* Text Colors */
+  --color-text-primary: #0a090c;
+  --color-text-secondary: #4f4f4f;
+  --color-text-muted: #828282;
+  --color-text-on-primary: #ffffff;
+
+  /* Status Colors */
+  --color-success: #34a853;
+  --color-success-light: #aad9be;
+  --color-success-bg: #e7fff1;
+  --color-warning: #ffc003;
+  --color-warning-light: #f0d994;
+  --color-warning-bg: #fff6da;
+  --color-error: #eb4335;
+  --color-error-light: #e79d9d;
+  --color-error-bg: #ffdada;
+  --color-info: #4285f4;
+  --color-info-light: #3783d3;
+
+  /* Social Colors */
+  --color-facebook: #4267b2;
+  --color-google-blue: #4285f4;
+  --color-google-red: #eb4335;
+  --color-google-yellow: #fbbc05;
+  --color-google-green: #34a853;
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0edee;
+  --bg-tertiary: #e3eaee;
+  --bg-card: #ffffff;
+  --bg-highlight: #eefcff;
+
+  /* Typography - Font Families */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Glacial Indifference', 'Inter', sans-serif;
+
+  /* Typography - Font Sizes */
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 22px;
+  --text-3xl: 24px;
+  --text-4xl: 32px;
+  --text-5xl: 40px;
+  --text-6xl: 60px;
+
+  /* Typography - Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Typography - Line Heights */
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* Spacing */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-8: 16px;
+  --space-10: 20px;
+  --space-12: 24px;
+  --space-14: 28px;
+  --space-16: 32px;
+  --space-20: 40px;
+  --space-24: 48px;
+
+  /* Border Radius */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 20px;
+  --radius-3xl: 32px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+  /* Borders */
+  --border-width: 1px;
+  --border-color: #e0e0e0;
+  --border-color-light: #ebebeb;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Z-index */
+  --z-dropdown: 100;
+  --z-modal: 200;
+  --z-tooltip: 300;
+}
+
+/* Reset and Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+  background-color: var(--bg-primary);
+}
+
+/* Typography Utilities */
+.text-display {
+  font-family: var(--font-display);
+}
+
+.text-primary {
+  color: var(--color-primary-800);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--color-primary-800);
+  outline-offset: 2px;
+}

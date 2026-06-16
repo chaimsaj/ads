@@ -1,0 +1,51 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+}
+
+/* Variants */
+.default {
+  background-color: var(--color-gray-200);
+  color: var(--color-text-secondary);
+}
+
+.active {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.paused {
+  background-color: var(--color-warning-bg);
+  color: #b89600;
+}
+
+.scheduled {
+  background-color: var(--color-secondary-100);
+  color: var(--color-primary-800);
+}
+
+.completed {
+  background-color: var(--color-gray-200);
+  color: var(--color-text-secondary);
+}
+
+.review {
+  background-color: #e3f2fd;
+  color: var(--color-info);
+}
+
+.draft {
+  background-color: var(--color-gray-200);
+  color: var(--color-text-secondary);
+}
+
+.rejected {
+  background-color: #fce4ec;
+  color: #c62828;
+}

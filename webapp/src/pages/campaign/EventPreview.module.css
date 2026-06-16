@@ -1,0 +1,452 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-800);
+  margin: 0 0 var(--space-3);
+}
+
+.subtitle {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Two-column layout */
+.content {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+/* Left: Event Banner */
+.bannerSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.sectionSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-primary-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Upload controls */
+.uploadControls {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-1);
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-white);
+  background: var(--color-primary-600);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.uploadBtn:hover {
+  background: var(--color-primary-700);
+}
+
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-danger-600, #dc2626);
+  background: transparent;
+  border: 1px solid var(--color-danger-600, #dc2626);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.removeBtn:hover {
+  background: var(--color-danger-50, #fef2f2);
+}
+
+.uploadError {
+  font-size: var(--text-sm);
+  color: var(--color-danger-600, #dc2626);
+  margin: 0;
+}
+
+/* Event card */
+.eventCard {
+  display: flex;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--color-white);
+  margin-top: var(--space-2);
+}
+
+.eventCardImage {
+  width: 220px;
+  min-height: 180px;
+  background: var(--color-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-400);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bannerPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eventCardInfo {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.eventCode {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+}
+
+.eventCode strong {
+  color: var(--color-neutral-900);
+  font-weight: var(--font-bold);
+}
+
+.eventDateTime {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+}
+
+.eventName {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-800);
+  margin: 0;
+}
+
+.eventAddress {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+  line-height: 1.4;
+}
+
+.pushNote {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-primary-600);
+  margin: var(--space-2) 0 0;
+}
+
+/* Right: Phone preview */
+.previewSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.previewTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  margin: 0;
+  align-self: flex-start;
+}
+
+/* Phone mockup */
+.phoneMockup {
+  width: 260px;
+  border: 2px solid var(--color-neutral-300);
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--color-white);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.phoneScreen {
+  display: flex;
+  flex-direction: column;
+}
+
+.phoneStatusBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px var(--space-4);
+  font-size: 10px;
+  color: var(--color-neutral-900);
+}
+
+.statusTime {
+  font-weight: var(--font-semibold);
+}
+
+.statusIcons {
+  display: flex;
+  gap: 3px;
+}
+
+.statusDot {
+  width: 4px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--color-neutral-400);
+}
+
+.phoneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+}
+
+.phoneHeaderTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+}
+
+.phoneFilterIcon {
+  font-size: 10px;
+  color: var(--color-neutral-400);
+}
+
+/* Filter tabs */
+.phoneTabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.phoneTab {
+  padding: 3px var(--space-2);
+  border-radius: 100px;
+  font-size: 8px;
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-500);
+  white-space: nowrap;
+}
+
+.phoneTabActive {
+  background: var(--color-primary-800);
+  color: var(--color-white);
+}
+
+/* Your Events section */
+.phoneEventsSection {
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.phoneEventsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.phoneEventsLabel {
+  font-size: 9px;
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-700);
+}
+
+.phoneSeeAll {
+  font-size: 8px;
+  color: var(--color-primary-600);
+}
+
+.phoneEventCard {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-1) 0;
+}
+
+.phoneEventThumb {
+  width: 40px;
+  height: 30px;
+  border-radius: 4px;
+  background: var(--color-neutral-200);
+  flex-shrink: 0;
+}
+
+.phoneEventInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.phoneEventDate {
+  font-size: 7px;
+  color: var(--color-neutral-400);
+}
+
+.phoneEventName {
+  font-size: 8px;
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-700);
+}
+
+/* Promoted event */
+.phonePromoted {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-secondary-50, #f0fafb);
+  border-top: 1px solid var(--color-neutral-100);
+}
+
+.phonePromotedLabel {
+  font-size: 7px;
+  color: var(--color-neutral-400);
+  margin-bottom: 3px;
+}
+
+.phonePromotedCard {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.phonePromotedThumb {
+  width: 50px;
+  height: 40px;
+  border-radius: 4px;
+  background: var(--color-neutral-200);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-400);
+}
+
+.phoneThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.phonePromotedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.phonePromotedDate {
+  font-size: 7px;
+  color: var(--color-neutral-500);
+}
+
+.phonePromotedName {
+  font-size: 9px;
+  font-weight: var(--font-bold);
+  color: var(--color-primary-800);
+}
+
+.phonePromotedAddress {
+  font-size: 7px;
+  color: var(--color-neutral-500);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.phoneActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.phoneActionBtn {
+  font-size: 7px;
+  color: var(--color-primary-600);
+  cursor: default;
+}
+
+/* Phone bottom nav */
+.phoneNav {
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-neutral-100);
+}
+
+.navItem {
+  font-size: 8px;
+  color: var(--color-neutral-400);
+  text-align: center;
+}
+
+.navItemActive {
+  color: var(--color-primary-600);
+  font-weight: var(--font-semibold);
+}
+
+/* Disclaimer */
+.disclaimer {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .eventCard {
+    flex-direction: column;
+  }
+
+  .eventCardImage {
+    width: 100%;
+    height: 160px;
+  }
+}
