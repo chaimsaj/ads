@@ -1,0 +1,50 @@
+FROM node:20-alpine
+
+ENV NODE_ENV=production
+
+# Server
+ENV PORT=80
+
+# Database
+ENV DATABASE_URL=mysql://dbuser:jnbp8O2gPn2T0ok4aL2katVg!@34.135.146.113:3306/myngly_ads
+
+ENV JWT_ACCESS_SECRET=8a19eea3e510c0da1f7ff8a98130a6eadf6f78574062fc993fbcbfb5497bebf1a30633d3c19482f8194ef98c0475c1c248bcbcbe89738c5154c234b2a19bbdbc
+ENV JWT_REFRESH_SECRET=b7d667636680a8c8fa8a3d8659076bd669e416d1df9f35865553710804f4fc810c80a1d9689abc69a88129ef1d33ea8ee66a8c0c60bc9a92f9d771d120fff6d4
+ENV JWT_ACCESS_EXPIRES_IN=90m
+ENV JWT_REFRESH_EXPIRES_IN=15d
+
+# CORS
+ENV CORS_ORIGINS=https://advertiser-webapp-dot-myngly-336422.uc.r.appspot.com,https://advertiser-admin-dot-myngly-336422.uc.r.appspot.com,http://advertiser-webapp-dot-myngly-336422.uc.r.appspot.com,http://advertiser-admin-dot-myngly-336422.uc.r.appspot.com
+
+# Stripe
+ENV STRIPE_SECRET_KEY=sk_test_51P0uN4JuwDcv97aR0GZxKbuJM9BChp8MXCh1s8D1mYlkV8zwkcA7Y8MCr2qQ56eoAHlVOJJ3gHBZJSowKk6zqBNl00NbWOWq1M
+ENV STRIPE_PUBLISHABLE_KEY=pk_test_51P0uN4JuwDcv97aRCTFWrXxdJ1V8WpsWZUyBA1LnniD5oJPUkYbueaDJhCa9MBnF5kQbwQNtFU94PfjC5rTAEvLS009SfCbZPx
+
+# SendGrid
+ENV SENDGRID_API_KEY=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
+ENV SENDGRID_FROM_EMAIL=noreply@myngly.com
+ENV SENDGRID_FROM_NAME='Myngly Ads'
+
+# Application URLs
+ENV APP_URL=https://advertiser-webapp-dot-myngly-336422.uc.r.appspot.com
+ENV ADMIN_URL=https://advertiser-admin-dot-myngly-336422.uc.r.appspot.com
+
+# Cookie
+ENV COOKIE_SECURE=true
+
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci --omit=dev
+
+RUN npx prisma generate
+
+COPY dist/ ./
+
+EXPOSE 80
+
+CMD ["node", "index.js"]

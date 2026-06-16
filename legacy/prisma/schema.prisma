@@ -1,0 +1,601 @@
+// =====================================================
+// Myngly Ads Platform - Prisma Schema
+// Database: MongoDB 7.0+
+// Updated: 2026-03-03
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// USER MODEL
+// Advertiser accounts
+// =====================================================
+model User {
+  id                        String               @id @default(auto()) @map("_id") @db.ObjectId
+  name                      String
+  email                     String               @unique
+  password                  String
+  phone                     String?
+  company                   String?
+  avatar                    String?
+
+  // Stripe
+  stripeCustomerId          String?              @map("stripe_customer_id")
+
+  // Email Verification
+  emailVerifiedAt           DateTime?            @map("email_verified_at")
+  verificationCode          String?              @map("verification_code")
+  verificationCodeExpiresAt DateTime?            @map("verification_code_expires_at")
+
+  // Password Reset
+  passwordResetToken        String?              @map("password_reset_token")
+  passwordResetExpiresAt    DateTime?            @map("password_reset_expires_at")
+
+  // Account Status
+  status                    UserStatus           @default(ACTIVE)
+  role                      UserRole             @default(ADVERTISER)
+
+  // Security
+  failedLoginAttempts       Int                  @default(0) @map("failed_login_attempts")
+  lockedUntil               DateTime?            @map("locked_until")
+  lastLoginAt               DateTime?            @map("last_login_at")
+  lastLoginIp               String?              @map("last_login_ip")
+
+  // Audit
+  createdAt                 DateTime             @default(now()) @map("created_at")
+  updatedAt                 DateTime             @updatedAt @map("updated_at")
+  deletedAt                 DateTime?            @map("deleted_at")
+
+  // Relations
+  campaigns                 Campaign[]
+  paymentMethods            PaymentMethod[]
+  notificationSettings      NotificationSetting?
+  transactions              Transaction[]
+  refreshTokens             RefreshToken[]
+
+  @@index([status])
+  @@index([role])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+// =====================================================
+// EVENT MODEL
+// Events from the Myngly mobile app (promotable)
+// =====================================================
+model Event {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  code        Int       @unique
+  name        String
+  address     String?
+  date        DateTime
+  bannerImage String?   @map("banner_image")
+
+  // Audit
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@index([date])
+  @@map("events")
+}
+
+// =====================================================
+// CAMPAIGN MODEL
+// Advertising campaigns
+// =====================================================
+model Campaign {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String              @map("user_id") @db.ObjectId
+  name            String
+  adType          AdType              @map("ad_type")
+  boostType       BoostType           @default(STANDARD) @map("boost_type")
+  adFormat        AdFormat            @map("ad_format")
+  status          CampaignStatus      @default(DRAFT)
+
+  // Ad Content
+  adText          String?             @map("ad_text")
+  bannerImage     String?             @map("banner_image")
+  destinationUrl  String?             @map("destination_url")
+  brandName       String?             @map("brand_name")
+  brandTagline    String?             @map("brand_tagline")
+
+  // Schedule
+  startDate       DateTime            @map("start_date")
+  endDate         DateTime            @map("end_date")
+
+  // Budget & Spending
+  budget          Float
+  spent           Float             @default(0)
+  dailyBudget     Float?            @map("daily_budget")
+
+  // Performance Metrics
+  impressions     Int                 @default(0)
+  clicks          Int                 @default(0)
+  conversions     Int                 @default(0)
+  applications    Int                 @default(0)
+  deposits        Int                 @default(0)
+
+  // Review
+  reviewedBy      String?             @map("reviewed_by") @db.ObjectId
+  reviewedAt      DateTime?           @map("reviewed_at")
+  rejectionReason String?             @map("rejection_reason")
+
+  // Audit
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  deletedAt       DateTime?           @map("deleted_at")
+
+  // Relations
+  user            User                @relation(fields: [userId], references: [id])
+  reviewer        AdminUser?          @relation(fields: [reviewedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targeting       CampaignTargeting?
+  dailyStats      CampaignDailyStats[]
+  transactions    Transaction[]
+  conversionEvents ConversionEvent[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([adFormat])
+  @@index([adType])
+  @@index([startDate, endDate])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@map("campaigns")
+}
+
+// =====================================================
+// CAMPAIGN TARGETING MODEL
+// =====================================================
+model CampaignTargeting {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  campaignId   String   @unique @map("campaign_id") @db.ObjectId
+
+  // Location
+  locationName String?  @map("location_name")
+  latitude     Float?
+  longitude    Float?
+  radiusKm     Int      @default(10) @map("radius_km")
+
+  // Demographics
+  ageMin       Int      @default(18) @map("age_min")
+  ageMax       Int      @default(65) @map("age_max")
+  gender       Gender   @default(ALL)
+
+  // Interests & Devices
+  interests    Json?
+  devices      Json?
+  platforms    Json?
+
+  // Audit
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([latitude, longitude])
+  @@map("campaign_targeting")
+}
+
+// =====================================================
+// PAYMENT METHOD MODEL
+// Tokenized payment methods (no raw card data)
+// =====================================================
+model PaymentMethod {
+  id                    String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String        @map("user_id") @db.ObjectId
+  cardType              String        @map("card_type")
+  lastFour              String        @map("last_four")
+  expiryMonth           Int           @map("expiry_month")
+  expiryYear            Int           @map("expiry_year")
+  cardholderName        String        @map("cardholder_name")
+  isDefault             Boolean       @default(false) @map("is_default")
+  stripePaymentMethodId String?       @map("stripe_payment_method_id")
+  stripeCustomerId      String?       @map("stripe_customer_id")
+
+  // Audit
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user                  User          @relation(fields: [userId], references: [id])
+  transactions          Transaction[]
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@map("payment_methods")
+}
+
+// =====================================================
+// TRANSACTION MODEL
+// Payment transactions
+// =====================================================
+model Transaction {
+  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String            @map("user_id") @db.ObjectId
+  campaignId            String?           @map("campaign_id") @db.ObjectId
+  paymentMethodId       String?           @map("payment_method_id") @db.ObjectId
+
+  // Transaction Details
+  type                  TransactionType
+  amount                Float
+  currency              String            @default("USD")
+  status                TransactionStatus @default(PENDING)
+
+  // Stripe
+  stripePaymentIntentId String?           @map("stripe_payment_intent_id")
+  stripeChargeId        String?           @map("stripe_charge_id")
+
+  // Details
+  description           String?
+  failureReason         String?           @map("failure_reason")
+  metadata              Json?
+
+  // Audit
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  user                  User              @relation(fields: [userId], references: [id])
+  campaign              Campaign?         @relation(fields: [campaignId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  paymentMethod         PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([userId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([stripePaymentIntentId])
+  @@map("transactions")
+}
+
+// =====================================================
+// NOTIFICATION SETTING MODEL
+// =====================================================
+model NotificationSetting {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String   @unique @map("user_id") @db.ObjectId
+  emailCampaignUpdates Boolean  @default(true) @map("email_campaign_updates")
+  emailWeeklyReports   Boolean  @default(true) @map("email_weekly_reports")
+  emailBillingAlerts   Boolean  @default(true) @map("email_billing_alerts")
+  emailProductNews     Boolean  @default(false) @map("email_product_news")
+  pushCampaignUpdates  Boolean  @default(true) @map("push_campaign_updates")
+  pushBillingAlerts    Boolean  @default(true) @map("push_billing_alerts")
+
+  // Audit
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@map("notification_settings")
+}
+
+// =====================================================
+// CAMPAIGN DAILY STATS MODEL
+// Daily aggregated statistics
+// =====================================================
+model CampaignDailyStats {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  campaignId  String   @map("campaign_id") @db.ObjectId
+  statDate    DateTime @map("stat_date")
+
+  // Metrics
+  impressions  Int      @default(0)
+  clicks       Int      @default(0)
+  conversions  Int      @default(0)
+  applications Int      @default(0)
+  deposits     Int      @default(0)
+  spend        Float    @default(0)
+
+  // Calculated
+  ctr         Float?
+  cpc         Float?
+  cpm         Float?
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([campaignId, statDate])
+  @@index([statDate])
+  @@map("campaign_daily_stats")
+}
+
+// =====================================================
+// CONVERSION EVENT MODEL
+// Individual tracking events for impressions, clicks, etc.
+// =====================================================
+model ConversionEvent {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  campaignId   String   @map("campaign_id") @db.ObjectId
+  type         String   // 'impression', 'click', 'application', 'deposit'
+  userId       String?  @map("user_id")
+  deviceId     String?  @map("device_id")
+  metadata     Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([campaignId, type])
+  @@index([createdAt])
+  @@map("conversion_events")
+}
+
+// =====================================================
+// AD FORMAT CONFIG MODEL
+// =====================================================
+model AdFormatConfig {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String?
+  dimensions  String?
+  basePrice   Float  @map("base_price")
+  minBudget   Float  @default(50) @map("min_budget")
+  isActive    Boolean  @default(true) @map("is_active")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("ad_formats")
+}
+
+// =====================================================
+// BOOST TYPE CONFIG MODEL
+// =====================================================
+model BoostTypeConfig {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String?
+  multiplier  Float  @default(1.00)
+  features    Json?
+  isActive    Boolean  @default(true) @map("is_active")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("boost_types")
+}
+
+// =====================================================
+// ADMIN USER MODEL
+// Separate table for security isolation
+// =====================================================
+model AdminUser {
+  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
+  name                String
+  email               String         @unique
+  password            String
+
+  // Role & Permissions
+  role                AdminRole      @default(ADMIN)
+  permissions         Json?
+
+  // Security
+  twoFactorSecret     String?        @map("two_factor_secret")
+  twoFactorEnabled    Boolean        @default(false) @map("two_factor_enabled")
+  failedLoginAttempts Int            @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?      @map("locked_until")
+  lastLoginAt         DateTime?      @map("last_login_at")
+  lastLoginIp         String?        @map("last_login_ip")
+
+  // Status
+  status              AdminStatus    @default(ACTIVE)
+
+  // Audit
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  createdBy           String?        @map("created_by") @db.ObjectId
+
+  // Relations
+  creator             AdminUser?     @relation("AdminCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAdmins       AdminUser[]    @relation("AdminCreator")
+  reviewedCampaigns   Campaign[]
+  auditLogs           AuditLog[]
+  systemSettingUpdates SystemSetting[]
+
+  @@index([status])
+  @@index([role])
+  @@map("admin_users")
+}
+
+// =====================================================
+// AUDIT LOG MODEL
+// Immutable security audit trail
+// =====================================================
+model AuditLog {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Actor
+  userType    AuditUserType @map("user_type")
+  userId      String?       @map("user_id") @db.ObjectId
+
+  // Action
+  action      String
+  entityType  String?       @map("entity_type")
+  entityId    String?       @map("entity_id")
+
+  // Details
+  oldValues   Json?         @map("old_values")
+  newValues   Json?         @map("new_values")
+  ipAddress   String?       @map("ip_address")
+  userAgent   String?       @map("user_agent")
+
+  // Timestamp (immutable - no updatedAt)
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  // Relations (optional - for admin lookups)
+  admin       AdminUser?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([userType, userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_log")
+}
+
+// =====================================================
+// SYSTEM SETTINGS MODEL
+// Platform-wide configuration
+// =====================================================
+model SystemSetting {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  settingKey   String       @unique @map("setting_key")
+  settingValue String?      @map("setting_value")
+  settingType  SettingType  @default(STRING) @map("setting_type")
+  description  String?
+  isPublic     Boolean      @default(false) @map("is_public")
+
+  // Audit
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  updatedBy    String?      @map("updated_by") @db.ObjectId
+
+  // Relations
+  updater      AdminUser?   @relation(fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("system_settings")
+}
+
+// =====================================================
+// REFRESH TOKEN MODEL
+// JWT refresh token storage
+// =====================================================
+model RefreshToken {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  userType    TokenUserType @map("user_type")
+  userId      String        @map("user_id") @db.ObjectId
+
+  // Token
+  tokenHash   String        @unique @map("token_hash")
+  expiresAt   DateTime      @map("expires_at")
+
+  // Device Info
+  deviceName  String?       @map("device_name")
+  ipAddress   String?       @map("ip_address")
+  userAgent   String?       @map("user_agent")
+
+  // Status
+  revokedAt   DateTime?     @map("revoked_at")
+
+  // Audit
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  user        User?         @relation(fields: [userId], references: [id])
+
+  @@index([userType, userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
+}
+
+// =====================================================
+// ENUMS
+// =====================================================
+
+enum UserStatus {
+  ACTIVE    @map("active")
+  INACTIVE  @map("inactive")
+  SUSPENDED @map("suspended")
+}
+
+enum UserRole {
+  USER        @map("user")
+  ADVERTISER  @map("advertiser")
+  ADMIN       @map("admin")
+  SUPER_ADMIN @map("super_admin")
+}
+
+enum AdType {
+  USER   @map("user")
+  EVENT  @map("event")
+  BRAND  @map("brand")
+}
+
+enum BoostType {
+  STANDARD @map("standard")
+  PREMIUM  @map("premium")
+}
+
+enum AdFormat {
+  BANNER       @map("Banner")
+  INTERSTITIAL @map("Interstitial")
+  PUSH         @map("Push")
+}
+
+enum CampaignStatus {
+  DRAFT     @map("draft")
+  REVIEW    @map("review")
+  ACTIVE    @map("active")
+  PAUSED    @map("paused")
+  SCHEDULED @map("scheduled")
+  COMPLETED @map("completed")
+  REJECTED  @map("rejected")
+}
+
+enum Gender {
+  ALL    @map("all")
+  MALE   @map("male")
+  FEMALE @map("female")
+}
+
+enum TransactionType {
+  CHARGE     @map("charge")
+  REFUND     @map("refund")
+  CREDIT     @map("credit")
+  ADJUSTMENT @map("adjustment")
+}
+
+enum TransactionStatus {
+  PENDING   @map("pending")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+  REFUNDED  @map("refunded")
+}
+
+enum AdminRole {
+  ADMIN       @map("admin")
+  SUPER_ADMIN @map("super_admin")
+  MODERATOR   @map("moderator")
+  SUPPORT     @map("support")
+}
+
+enum AdminStatus {
+  ACTIVE   @map("active")
+  INACTIVE @map("inactive")
+}
+
+enum AuditUserType {
+  USER   @map("user")
+  ADMIN  @map("admin")
+  SYSTEM @map("system")
+}
+
+enum SettingType {
+  STRING  @map("string")
+  NUMBER  @map("number")
+  BOOLEAN @map("boolean")
+  JSON    @map("json")
+}
+
+enum TokenUserType {
+  USER  @map("user")
+  ADMIN @map("admin")
+}
