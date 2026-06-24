@@ -91,6 +91,14 @@ async function handle<T>(res: Response, retry?: () => Promise<Response>): Promis
   return json as T;
 }
 
+/** Absolute URL for an <img src> media reference served by the gateway. */
+export function mediaUrl(idOrUrl: string): string {
+  if (!idOrUrl) return '';
+  if (idOrUrl.startsWith('http')) return idOrUrl;
+  const host = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  return idOrUrl.startsWith('/') ? `${host}${idOrUrl}` : idOrUrl;
+}
+
 export const apiClient = {
   /** POST a JSON-RPC action. `path` is relative to the surface base, e.g. '/campaigns/list'. */
   async post<T>(path: string, body?: unknown): Promise<T> {
