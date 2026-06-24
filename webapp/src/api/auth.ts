@@ -1,4 +1,4 @@
-import { apiClient, API_URL } from './client';
+import { apiClient, setTokens, clearTokens } from './client';
 import { mapProfileResponse, type BackendUserProfileDTO } from './user';
 import type { User } from '../types/api';
 
@@ -8,8 +8,11 @@ export interface RegisterRequest {
   password: string;
 }
 
-interface BackendLoginResponse {
+interface BackendAuthResponse {
   user: BackendUserProfileDTO;
+  accessToken: string;
+  refreshToken: string;
+  accessExpiresAtUtc: string;
 }
 
 function mapUserFromBackend(dto: BackendUserProfileDTO): User {
@@ -29,32 +32,27 @@ function mapUserFromBackend(dto: BackendUserProfileDTO): User {
 
 export const authApi = {
   async login(email: string, password: string): Promise<{ user: User }> {
-    const raw = await apiClient.post<BackendLoginResponse>('/v1/auth/login', { email, password });
+    const raw = await apiClient.post<BackendAuthResponse>('/auth/login', { email, password });
+    setTokens(raw.accessToken, raw.refreshToken);
     return { user: mapUserFromBackend(raw.user) };
   },
 
   async register(data: RegisterRequest): Promise<{ user: User }> {
-    const raw = await apiClient.post<BackendLoginResponse>('/v1/auth/register', data);
+    const raw = await apiClient.post<BackendAuthResponse>('/auth/register', data);
+    setTokens(raw.accessToken, raw.refreshToken);
     return { user: mapUserFromBackend(raw.user) };
   },
 
   async logout(): Promise<void> {
-    await apiClient.post('/v1/auth/logout');
+    try {
+      await apiClient.post('/auth/logout');
+    } finally {
+      clearTokens();
+    }
   },
 
   async getProfile(): Promise<User> {
-    const raw = await apiClient.get<BackendUserProfileDTO>('/v1/user/profile');
+    const raw = await apiClient.post<BackendUserProfileDTO>('/user/profile');
     return mapUserFromBackend(raw);
-  },
-
-  async refresh(): Promise<void> {
-    const res = await fetch(`${API_URL}/v1/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) {
-      throw new Error('Token refresh failed');
-    }
   },
 };

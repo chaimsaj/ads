@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { authApi, type RegisterRequest } from '../api/auth';
-import { setClientAuthenticated } from '../api/client';
+import { getAccessToken, clearTokens } from '../api/client';
 import type { User } from '../types/api';
 
 interface AuthContextType {
@@ -20,22 +20,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = useCallback(async () => {
+    // No token means the user is logged out — skip the profile call.
+    if (!getAccessToken()) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
     try {
+      // On a 401 the client auto-refreshes; if that fails it clears the tokens.
       const profile = await authApi.getProfile();
       setUser(profile);
-      setClientAuthenticated(true);
     } catch {
-      // Access token missing or expired — try refreshing before giving up
-      try {
-        await authApi.refresh();
-        const profile = await authApi.getProfile();
-        setUser(profile);
-        setClientAuthenticated(true);
-      } catch {
-        // Refresh also failed — user is truly not authenticated
-        setUser(null);
-        setClientAuthenticated(false);
-      }
+      clearTokens();
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -55,23 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const response = await authApi.login(email, password);
     setUser(response.user);
-    setClientAuthenticated(true);
   };
 
   const register = async (data: RegisterRequest) => {
     const response = await authApi.register(data);
     setUser(response.user);
-    setClientAuthenticated(true);
   };
 
   const logout = async () => {
     try {
       await authApi.logout();
     } catch {
-      // Ignore errors on logout
+      // Ignore errors on logout; tokens are cleared regardless.
     } finally {
       setUser(null);
-      setClientAuthenticated(false);
     }
   };
 

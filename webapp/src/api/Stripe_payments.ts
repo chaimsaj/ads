@@ -127,7 +127,7 @@ export const stripePaymentsApi = {
    * Get all saved payment methods
    */
   getPaymentMethods: async (): Promise<PaymentMethod[]> => {
-    const raw = await apiClient.get<BackendPaymentMethodDTO[]>('/v1/user/payment-methods');
+    const raw = await apiClient.post<BackendPaymentMethodDTO[]>('/user/payment-methods/list');
     if (Array.isArray(raw)) {
       return raw.map(mapPaymentMethod);
     }
@@ -138,14 +138,14 @@ export const stripePaymentsApi = {
    * Remove a payment method
    */
   removePaymentMethod: async (paymentMethodId: string): Promise<void> => {
-    return apiClient.delete<void>(`/v1/user/payment-methods/${paymentMethodId}`);
+    await apiClient.post<void>('/user/payment-methods/delete', { id: paymentMethodId });
   },
 
   /**
    * Set a payment method as default
    */
   setDefaultPaymentMethod: async (paymentMethodId: string): Promise<PaymentMethod> => {
-    return apiClient.patch<PaymentMethod>(`/v1/user/payment-methods/${paymentMethodId}/default`);
+    return apiClient.post<PaymentMethod>('/user/payment-methods/set-default', { id: paymentMethodId });
   },
 
   // =====================================================
@@ -156,14 +156,14 @@ export const stripePaymentsApi = {
    * Create a payment intent for a campaign
    */
   createPaymentIntent: async (data: CreatePaymentIntentRequest): Promise<PaymentIntent> => {
-    return apiClient.post<PaymentIntent>('/v1/stripe/payment-intents', data);
+    return apiClient.post<PaymentIntent>('/stripe/payment-intents/create', data);
   },
 
   /**
    * Confirm a payment intent
    */
   confirmPayment: async (paymentIntentId: string, data: ConfirmPaymentRequest): Promise<PaymentIntent> => {
-    return apiClient.post<PaymentIntent>('/v1/stripe/payments/confirm', {
+    return apiClient.post<PaymentIntent>('/stripe/payments/confirm', {
       paymentIntentId,
       paymentMethodId: data.paymentMethodId,
     });
@@ -175,7 +175,7 @@ export const stripePaymentsApi = {
 
   /**
    * Get user's transaction history
-   * Note: backend returns array directly via success() helper
+   * Note: backend may return a raw array or an already-shaped response
    */
   getTransactions: async (params?: {
     page?: number;
@@ -184,19 +184,11 @@ export const stripePaymentsApi = {
     startDate?: string;
     endDate?: string;
   }): Promise<TransactionsResponse> => {
-    const searchParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-    }
-    const query = searchParams.toString();
-    const raw = await apiClient.get<Transaction[] | TransactionsResponse>(
-      `/v1/stripe/transactions${query ? `?${query}` : ''}`,
+    const raw = await apiClient.post<Transaction[] | TransactionsResponse>(
+      '/stripe/transactions/list',
+      params ?? {},
     );
-    // Backend may return raw array via success() or already-shaped response
+    // Backend may return a raw array or an already-shaped response
     if (Array.isArray(raw)) {
       return {
         transactions: raw,
@@ -212,7 +204,7 @@ export const stripePaymentsApi = {
    * Get a specific transaction
    */
   getTransaction: async (transactionId: string): Promise<Transaction> => {
-    return apiClient.get<Transaction>(`/v1/stripe/transactions/${transactionId}`);
+    return apiClient.post<Transaction>('/stripe/transactions/get', { id: transactionId });
   },
 
   // =====================================================
@@ -221,26 +213,18 @@ export const stripePaymentsApi = {
 
   /**
    * Get user's invoices
-   * Note: backend returns array directly via success() helper
+   * Note: backend may return a raw array or an already-shaped response
    */
   getInvoices: async (params?: {
     page?: number;
     limit?: number;
     status?: string;
   }): Promise<InvoicesResponse> => {
-    const searchParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-    }
-    const query = searchParams.toString();
-    const raw = await apiClient.get<Invoice[] | InvoicesResponse>(
-      `/v1/stripe/invoices${query ? `?${query}` : ''}`,
+    const raw = await apiClient.post<Invoice[] | InvoicesResponse>(
+      '/stripe/invoices/list',
+      params ?? {},
     );
-    // Backend may return raw array via success() or already-shaped response
+    // Backend may return a raw array or an already-shaped response
     if (Array.isArray(raw)) {
       return {
         invoices: raw,
@@ -253,17 +237,25 @@ export const stripePaymentsApi = {
   },
 
   /**
-   * Get a specific invoice
+   * Get a specific invoice.
+   * Note: the API has no single-invoice endpoint, so this lists invoices and
+   * selects the matching one client-side. Replace with a dedicated `get`
+   * action once the backend exposes one.
    */
   getInvoice: async (invoiceId: string): Promise<Invoice> => {
-    return apiClient.get<Invoice>(`/v1/stripe/invoices/${invoiceId}`);
+    const { invoices } = await stripePaymentsApi.getInvoices();
+    const invoice = invoices.find((i) => i.id === invoiceId);
+    if (!invoice) {
+      throw new Error('Invoice not found');
+    }
+    return invoice;
   },
 
   /**
    * Download invoice PDF
    */
   downloadInvoice: async (invoiceId: string): Promise<{ url: string }> => {
-    return apiClient.get<{ url: string }>(`/v1/stripe/invoices/${invoiceId}/download`);
+    return apiClient.post<{ url: string }>('/stripe/invoices/download', { id: invoiceId });
   },
 
   // =====================================================
@@ -279,8 +271,8 @@ export const stripePaymentsApi = {
     cancelUrl?: string;
   }): Promise<{ url: string; sessionId: string }> => {
     return apiClient.post<{ url: string; sessionId: string }>(
-      '/v1/stripe/checkout-sessions/setup',
-      params,
+      '/stripe/checkout-sessions/setup',
+      params ?? {},
     );
   },
 
@@ -289,9 +281,7 @@ export const stripePaymentsApi = {
    * database and sets it as the user's default. Idempotent.
    */
   processCheckoutSession: async (sessionId: string): Promise<BackendPaymentMethodDTO> => {
-    return apiClient.post<BackendPaymentMethodDTO>(
-      `/v1/stripe/checkout-sessions/${sessionId}/process`,
-    );
+    return apiClient.post<BackendPaymentMethodDTO>('/stripe/checkout-sessions/process', { sessionId });
   },
 };
 

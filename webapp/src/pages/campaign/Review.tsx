@@ -98,6 +98,7 @@ export function Review() {
         adFormat: wizardData.adFormat || 'banner',
         adText: wizardData.adText || '',
         link: wizardData.link || '',
+        bannerImage: wizardData.bannerImage || undefined,
         spotlightUserId: wizardData.spotlightUserId || undefined,
         eventId: wizardData.eventId || undefined,
         brandName: wizardData.brandName || undefined,

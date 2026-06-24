@@ -17,9 +17,7 @@ interface BackendUserSearchResult {
 export const usersApi = {
   async search(query: string): Promise<UserSearchResult[]> {
     if (query.length < 2) return [];
-    const results = await apiClient.get<BackendUserSearchResult[]>(
-      `/v1/users/search?q=${encodeURIComponent(query)}`,
-    );
+    const results = await apiClient.post<BackendUserSearchResult[]>('/users/search', { q: query });
     return results.map((u) => ({
       id: u.id,
       name: u.name,

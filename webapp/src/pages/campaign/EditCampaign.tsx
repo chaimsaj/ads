@@ -5,10 +5,13 @@ import { Header, Footer } from '../../components/layout';
 import { Button, Input } from '../../components/ui';
 import { campaignsApi } from '../../api/campaigns';
 import type { CampaignDetail } from '../../api/campaigns';
+import { apiClient, isApiError } from '../../api/client';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import styles from './EditCampaign.module.css';
 
 type TabType = 'content' | 'targeting' | 'budget';
+
+const MAX_BANNER_BYTES = 5 * 1024 * 1024;
 
 export function EditCampaign() {
   const { id } = useParams();
@@ -19,6 +22,7 @@ export function EditCampaign() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bannerError, setBannerError] = useState<string | null>(null);
   const [campaign, setCampaign] = useState<CampaignDetail | null>(null);
 
   // Campaign form state
@@ -47,7 +51,8 @@ export function EditCampaign() {
   }, [uploadedImageUrl]);
 
   // The image to show in preview: uploaded file takes priority, then existing banner
-  const previewImageUrl = uploadedImageUrl || campaign?.bannerImage || null;
+  const previewImageUrl = uploadedImageUrl
+    || (campaign?.bannerImage ? apiClient.mediaUrl(campaign.bannerImage) : null);
 
   const adType = (campaign?.adType || '').toLowerCase();
   const adFormat = (campaign?.adFormat || '').toLowerCase();
@@ -98,10 +103,18 @@ export function EditCampaign() {
   const handleSave = async () => {
     try {
       setIsSaving(true);
+      setError(null);
+      // Upload a newly selected banner first and persist its stored URL.
+      let bannerImage: string | undefined;
+      if (formData.bannerImage) {
+        const { url } = await campaignsApi.uploadBanner(formData.bannerImage);
+        bannerImage = url;
+      }
       await campaignsApi.update(id!, {
         name: formData.name,
         adText: formData.adText,
         link: formData.link,
+        ...(bannerImage !== undefined && { bannerImage }),
         targeting: {
           address: formData.address,
           radius: formData.radius,
@@ -113,7 +126,11 @@ export function EditCampaign() {
       setHasChanges(false);
       navigate(`/campaign/${id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save campaign');
+      if (isApiError(err)) {
+        setError(err.message);
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to save campaign');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -236,7 +253,14 @@ export function EditCampaign() {
                           accept="image/jpeg,image/png"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) updateField('bannerImage', file);
+                            if (!file) return;
+                            if (file.size > MAX_BANNER_BYTES) {
+                              setBannerError('Image is too large. Please choose a file under 5 MB.');
+                              e.target.value = '';
+                              return;
+                            }
+                            setBannerError(null);
+                            updateField('bannerImage', file);
                           }}
                           className={styles.fileInput}
                         />
@@ -245,6 +269,9 @@ export function EditCampaign() {
                       </label>
                       {formData.bannerImage && (
                         <p className={styles.fileName}>{formData.bannerImage.name}</p>
+                      )}
+                      {bannerError && (
+                        <p className={styles.fileName} style={{ color: 'var(--color-error, red)' }}>{bannerError}</p>
                       )}
                     </div>
 

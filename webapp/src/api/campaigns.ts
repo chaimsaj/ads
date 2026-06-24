@@ -348,32 +348,32 @@ export const campaignsApi = {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }): Promise<CampaignSummary[]> {
-    const searchParams = new URLSearchParams();
+    const body: Record<string, unknown> = {};
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
           // Backend expects uppercase enum values for status/adFormat filters
           if ((key === 'status' || key === 'adFormat') && typeof value === 'string') {
-            searchParams.append(key, value.toUpperCase());
+            body[key] = value.toUpperCase();
           } else {
-            searchParams.append(key, String(value));
+            body[key] = value;
           }
         }
       });
     }
     // Request a large page to get all campaigns for client-side filtering
-    if (!params?.limit) {
-      searchParams.set('limit', '100');
+    if (params?.limit === undefined) {
+      body.limit = 100;
     }
-    const query = searchParams.toString();
-    const raw = await apiClient.get<BackendPaginatedResponse<BackendCampaignDTO>>(
-      `/v1/campaigns${query ? `?${query}` : ''}`,
+    const raw = await apiClient.post<BackendPaginatedResponse<BackendCampaignDTO>>(
+      '/campaigns/list',
+      body,
     );
     return raw.data.map(mapCampaignSummary);
   },
 
   async getById(id: string): Promise<CampaignDetail> {
-    const raw = await apiClient.get<BackendCampaignDetailDTO>(`/v1/campaigns/${id}`);
+    const raw = await apiClient.post<BackendCampaignDetailDTO>('/campaigns/get', { id });
     if (!raw || typeof raw !== 'object' || !raw.id) {
       throw new Error('Campaign not found');
     }
@@ -381,7 +381,7 @@ export const campaignsApi = {
   },
 
   async getStatistics(): Promise<CampaignStats> {
-    const raw = await apiClient.get<BackendCampaignStatistics>('/v1/campaigns/statistics');
+    const raw = await apiClient.post<BackendCampaignStatistics>('/campaigns/statistics');
     return {
       active: raw.activeCampaigns ?? 0,
       paused: 0,
@@ -394,24 +394,22 @@ export const campaignsApi = {
 
   async create(data: CreateCampaignRequest): Promise<CampaignDetail> {
     const body = mapCreateRequest(data);
-    const raw = await apiClient.post<BackendCampaignDetailDTO>('/v1/campaigns', body);
+    const raw = await apiClient.post<BackendCampaignDetailDTO>('/campaigns/create', body);
     return mapCampaignDetail(raw);
   },
 
   async update(id: string, data: Partial<CreateCampaignRequest>): Promise<CampaignDetail> {
     const body = mapUpdateRequest(data);
-    const raw = await apiClient.put<BackendCampaignDetailDTO>(`/v1/campaigns/${id}`, body);
+    const raw = await apiClient.post<BackendCampaignDetailDTO>('/campaigns/update', { id, ...body });
     return mapCampaignDetail(raw);
   },
 
   async updateStatus(id: string, status: string): Promise<void> {
-    return apiClient.patch(`/v1/campaigns/${id}/status`, {
-      status: status.toUpperCase(),
-    });
+    await apiClient.post('/campaigns/status', { id, status: status.toUpperCase() });
   },
 
   async duplicate(id: string): Promise<CampaignDetail> {
-    const raw = await apiClient.post<BackendCampaignDetailDTO>(`/v1/campaigns/${id}/duplicate`);
+    const raw = await apiClient.post<BackendCampaignDetailDTO>('/campaigns/duplicate', { id });
     return mapCampaignDetail(raw);
   },
 
@@ -421,36 +419,33 @@ export const campaignsApi = {
     durationDays: number;
     locationName?: string;
   }): Promise<CampaignEstimate> {
-    return apiClient.post<CampaignEstimate>('/v1/campaigns/estimate', params);
+    return apiClient.post<CampaignEstimate>('/campaigns/estimate', params);
   },
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`/v1/campaigns/${id}`);
+    await apiClient.post('/campaigns/delete', { id });
   },
 
   async getPerformance(id: string): Promise<PerformanceSummary> {
-    return apiClient.get<PerformanceSummary>(`/v1/campaigns/${id}/performance`);
+    return apiClient.post<PerformanceSummary>('/campaigns/performance', { id });
   },
 
   async getDailyPerformance(id: string, days?: number): Promise<DailyPerformance[]> {
-    const params = days ? `?days=${days}` : '';
-    return apiClient.get<DailyPerformance[]>(`/v1/campaigns/${id}/performance/daily${params}`);
+    return apiClient.post<DailyPerformance[]>('/campaigns/performance-daily', { id, days });
   },
 
   async getPerformanceOverview(): Promise<PerformanceOverview> {
-    return apiClient.get<PerformanceOverview>('/v1/campaigns/performance/overview');
+    return apiClient.post<PerformanceOverview>('/campaigns/performance-overview');
+  },
+
+  /** Upload a banner image and receive its stored URL. The field name must be `file`. */
+  async uploadBanner(file: File): Promise<{ url: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return apiClient.postForm<{ url: string }>('/campaigns/banner', form);
   },
 
   async exportCsv(): Promise<Blob> {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/v1/campaigns/export`,
-      {
-        credentials: 'include',
-      }
-    );
-    if (!response.ok) {
-      throw new Error('Export failed');
-    }
-    return response.blob();
+    return apiClient.postBlob('/campaigns/export', {});
   },
 };

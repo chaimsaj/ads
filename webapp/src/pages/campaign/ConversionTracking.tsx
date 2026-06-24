@@ -15,7 +15,7 @@ import {
 import { Header, Footer } from '../../components/layout';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { campaignsApi, type CampaignSummary } from '../../api/campaigns';
-import { apiClient, API_URL } from '../../api/client';
+import { apiClient, API_BASE } from '../../api/client';
 import styles from './ConversionTracking.module.css';
 
 type ConversionType = 'application' | 'deposit';
@@ -26,7 +26,7 @@ interface TestResult {
 }
 
 function buildPixelSnippet(campaignId: string, type: ConversionType): string {
-  return `<!-- Myngly Conversion Tracking Pixel -->\n<img src="${API_URL}/v1/tracking/pixel/${campaignId}.png?type=${type}"\n     width="1" height="1" style="display:none"\n     alt="" />`;
+  return `<!-- Myngly Conversion Tracking Pixel -->\n<img src="${API_BASE}/tracking/pixel/${campaignId}.png?type=${type}"\n     width="1" height="1" style="display:none"\n     alt="" />`;
 }
 
 export function ConversionTracking() {
@@ -88,7 +88,7 @@ export function ConversionTracking() {
     try {
       setIsTesting(true);
       setTestResult(null);
-      await apiClient.post('/v1/tracking/conversion', {
+      await apiClient.post('/tracking/conversion', {
         campaignId: selectedCampaignId,
         type: conversionType,
         test: true,

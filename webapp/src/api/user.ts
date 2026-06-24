@@ -70,7 +70,7 @@ function mapUpdateRequest(data: {
 
 export const userApi = {
   async getProfile(): Promise<UserProfile> {
-    const raw = await apiClient.get<BackendUserProfileDTO>('/v1/user/profile');
+    const raw = await apiClient.post<BackendUserProfileDTO>('/user/profile');
     return mapProfileResponse(raw);
   },
 
@@ -80,23 +80,23 @@ export const userApi = {
     phone?: string;
   }): Promise<UserProfile> {
     const body = mapUpdateRequest(data);
-    const raw = await apiClient.put<BackendUserProfileDTO>('/v1/user/profile', body);
+    const raw = await apiClient.post<BackendUserProfileDTO>('/user/profile/update', body);
     return mapProfileResponse(raw);
   },
 
   async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
-    return apiClient.put('/v1/user/password', data);
+    await apiClient.post('/user/password/change', data);
   },
 
   async deleteAccount(): Promise<void> {
-    return apiClient.delete('/v1/user/account');
+    await apiClient.post('/user/account/delete');
   },
 
   async getNotificationSettings(): Promise<Record<string, boolean>> {
-    return apiClient.get('/v1/user/notifications/settings');
+    return apiClient.post('/user/notifications/settings/get');
   },
 
   async updateNotificationSettings(data: Record<string, boolean>): Promise<void> {
-    return apiClient.put('/v1/user/notifications/settings', data);
+    await apiClient.post('/user/notifications/settings/update', { settings: data });
   },
 };

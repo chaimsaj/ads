@@ -24,6 +24,7 @@ import {
 import { Header, Footer } from '../components/layout';
 import { Button, Badge, Input } from '../components/ui';
 import { campaignsApi, type PerformanceOverview } from '../api/campaigns';
+import { apiClient } from '../api/client';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import styles from './Dashboard.module.css';
 
@@ -780,7 +781,7 @@ export function Dashboard() {
                           <td>
                             <div className={styles.imageThumb}>
                               {campaign.image && campaign.image !== '/placeholder.png' ? (
-                                <img src={campaign.image} alt={campaign.name} />
+                                <img src={apiClient.mediaUrl(campaign.image)} alt={campaign.name} />
                               ) : (
                                 <span>{campaign.name.substring(0, 15)}</span>
                               )}

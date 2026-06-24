@@ -3,8 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { WizardLayout } from '../../components/layout';
 import { Input } from '../../components/ui';
+import { campaignsApi } from '../../api/campaigns';
+import { isApiError } from '../../api/client';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import styles from './CreateAd.module.css';
+
+const MAX_BANNER_BYTES = 5 * 1024 * 1024;
 
 type AdFormat = 'banner' | 'interstitial' | 'push';
 
@@ -39,7 +43,10 @@ export function CreateAd() {
     adText: (wizardData.adText as string) || '',
     link: (wizardData.link as string) || '',
     bannerImage: null as File | null,
+    bannerUrl: (wizardData.bannerImage as string) || '',
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const info = formatInfo[format];
 
@@ -62,7 +69,8 @@ export function CreateAd() {
     saveWizardData({
       adText: formData.adText,
       link: normalizedLink,
-      hasBanner: !!formData.bannerImage,
+      bannerImage: formData.bannerUrl || undefined,
+      hasBanner: !!formData.bannerUrl,
     });
     navigate('/campaign/new/targeting');
   };
@@ -71,10 +79,25 @@ export function CreateAd() {
     navigate('/campaign/new/ad-format');
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, bannerImage: file });
+    if (!file) return;
+    if (file.size > MAX_BANNER_BYTES) {
+      setUploadError('Image is too large. Please choose a file under 5 MB.');
+      e.target.value = '';
+      return;
+    }
+    setUploadError(null);
+    setFormData((prev) => ({ ...prev, bannerImage: file }));
+    setIsUploading(true);
+    try {
+      const { url } = await campaignsApi.uploadBanner(file);
+      setFormData((prev) => ({ ...prev, bannerUrl: url }));
+    } catch (err) {
+      setFormData((prev) => ({ ...prev, bannerImage: null, bannerUrl: '' }));
+      setUploadError(isApiError(err) ? err.message : 'Failed to upload banner. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -84,7 +107,7 @@ export function CreateAd() {
       totalSteps={3}
       onBack={handleBack}
       onNext={handleNext}
-      nextDisabled={!formData.adText || !formData.link}
+      nextDisabled={!formData.adText || !formData.link || isUploading}
       user={user || { name: '' }}
     >
       <div className={styles.container}>
@@ -122,8 +145,12 @@ export function CreateAd() {
                 <Upload size={24} />
                 <span>Upload banner graphics</span>
               </label>
-              {formData.bannerImage && (
+              {isUploading && <p className={styles.fileName}>Uploading...</p>}
+              {!isUploading && formData.bannerImage && (
                 <p className={styles.fileName}>{formData.bannerImage.name}</p>
+              )}
+              {uploadError && (
+                <p className={styles.fileName} style={{ color: 'var(--color-error, red)' }}>{uploadError}</p>
               )}
             </div>
 

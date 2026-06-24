@@ -21,9 +21,7 @@ interface BackendEventSearchResult {
 export const eventsApi = {
   async search(query: string): Promise<EventSearchResult[]> {
     if (query.length < 2) return [];
-    const results = await apiClient.get<BackendEventSearchResult[]>(
-      `/v1/events/search?q=${encodeURIComponent(query)}`,
-    );
+    const results = await apiClient.post<BackendEventSearchResult[]>('/events/search', { q: query });
     return results.map((e) => ({
       id: e.id,
       code: e.code,

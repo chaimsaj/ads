@@ -57,14 +57,14 @@ export const sendGridEmailsApi = {
    * Get user's email notification preferences
    */
   getEmailPreferences: async (): Promise<EmailPreferences> => {
-    return apiClient.get<EmailPreferences>('/user/email-preferences');
+    return apiClient.post<EmailPreferences>('/user/email-preferences/get');
   },
 
   /**
    * Update user's email notification preferences
    */
   updateEmailPreferences: async (preferences: Partial<EmailPreferences>): Promise<EmailPreferences> => {
-    return apiClient.put<EmailPreferences>('/user/email-preferences', preferences);
+    return apiClient.post<EmailPreferences>('/user/email-preferences/update', preferences);
   },
 
   /**
@@ -92,14 +92,14 @@ export const sendGridEmailsApi = {
    * Request campaign report email
    */
   requestCampaignReport: async (campaignId: string): Promise<EmailResult> => {
-    return apiClient.post<EmailResult>(`/campaigns/${campaignId}/send-report`);
+    return apiClient.post<EmailResult>('/campaigns/send-report', { id: campaignId });
   },
 
   /**
    * Request invoice email
    */
   requestInvoiceEmail: async (invoiceId: string): Promise<EmailResult> => {
-    return apiClient.post<EmailResult>(`/invoices/${invoiceId}/send-email`);
+    return apiClient.post<EmailResult>('/invoices/send-email', { id: invoiceId });
   },
 };
 
