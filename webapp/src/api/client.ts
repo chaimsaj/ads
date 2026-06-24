@@ -142,8 +142,9 @@ export const apiClient = {
   /** Absolute URL for an <img src> media reference (served anonymously). */
   mediaUrl(idOrUrl: string): string {
     if (!idOrUrl) return '';
-    if (idOrUrl.startsWith('http') || idOrUrl.startsWith(API_BASE)) return idOrUrl;
-    return idOrUrl.startsWith('/') ? `${import.meta.env.VITE_API_URL || ''}${idOrUrl}` : idOrUrl;
+    if (idOrUrl.startsWith('http')) return idOrUrl;
+    const host = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
+    return idOrUrl.startsWith('/') ? `${host}${idOrUrl}` : idOrUrl;
   },
 };
 

@@ -107,7 +107,7 @@ export function EditCampaign() {
       // Upload a newly selected banner first and persist its stored URL.
       let bannerImage: string | undefined;
       if (formData.bannerImage) {
-        const { url } = await campaignsApi.uploadBanner(formData.bannerImage);
+        const { url } = await campaignsApi.uploadBanner(formData.bannerImage, adFormat);
         bannerImage = url;
       }
       await campaignsApi.update(id!, {

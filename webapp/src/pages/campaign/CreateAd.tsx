@@ -91,7 +91,7 @@ export function CreateAd() {
     setFormData((prev) => ({ ...prev, bannerImage: file }));
     setIsUploading(true);
     try {
-      const { url } = await campaignsApi.uploadBanner(file);
+      const { url } = await campaignsApi.uploadBanner(file, format);
       setFormData((prev) => ({ ...prev, bannerUrl: url }));
     } catch (err) {
       setFormData((prev) => ({ ...prev, bannerImage: null, bannerUrl: '' }));

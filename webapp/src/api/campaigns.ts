@@ -439,9 +439,10 @@ export const campaignsApi = {
   },
 
   /** Upload a banner image and receive its stored URL. The field name must be `file`. */
-  async uploadBanner(file: File): Promise<{ url: string }> {
+  async uploadBanner(file: File, format?: string): Promise<{ url: string }> {
     const form = new FormData();
     form.append('file', file);
+    if (format) form.append('format', format);
     return apiClient.postForm<{ url: string }>('/campaigns/banner', form);
   },
 
