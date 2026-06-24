@@ -15,7 +15,7 @@ interface BackendDashboardStats {
 
 export const dashboardApi = {
   getStats: async (): Promise<DashboardData> => {
-    const raw = await apiClient.get<BackendDashboardStats>('/admin/v1/dashboard/stats');
+    const raw = await apiClient.post<BackendDashboardStats>('/dashboard/stats');
     return {
       stats: {
         totalUsers: raw.totalUsers ?? 0,

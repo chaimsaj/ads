@@ -76,6 +76,11 @@ export interface Activity {
   metadata?: Record<string, unknown>;
 }
 
+export interface ApiError {
+  status: number;
+  message: string;
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -101,14 +106,8 @@ export interface PaginationParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-export interface LoginResponse {
-  user?: AdminUser;
-  requiresTwoFactor?: boolean;
-}
-
 export interface LoginResult {
   success: boolean;
-  requiresTwoFactor?: boolean;
   error?: string;
 }
 

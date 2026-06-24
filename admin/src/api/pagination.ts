@@ -2,17 +2,11 @@ import type { PaginatedResponse } from '../types';
 
 export interface BackendPaginatedResponse<T> {
   data: T[];
-  meta: {
-    currentPage: number;
-    lastPage: number;
-    perPage: number;
+  pagination: {
+    page: number;
+    limit: number;
     total: number;
-  };
-  links: {
-    first: string;
-    last: string;
-    prev: string | null;
-    next: string | null;
+    totalPages: number;
   };
 }
 
@@ -20,10 +14,10 @@ export function mapPaginatedResponse<T>(raw: BackendPaginatedResponse<T>): Pagin
   return {
     data: raw.data,
     pagination: {
-      page: raw.meta.currentPage,
-      limit: raw.meta.perPage,
-      total: raw.meta.total,
-      totalPages: raw.meta.lastPage,
+      page: raw.pagination.page,
+      limit: raw.pagination.limit,
+      total: raw.pagination.total,
+      totalPages: raw.pagination.totalPages,
     },
   };
 }

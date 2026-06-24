@@ -1,11 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import type { ApiError } from '../types';
 
-export { API_URL };
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/ads-admin`;
 
-export interface ApiError {
-  status: number;
-  message: string;
-}
+const ACCESS_KEY = 'ads_admin_access';
+const REFRESH_KEY = 'ads_admin_refresh';
+
+export { API_BASE };
 
 export function createApiError(status: number, message: string): ApiError {
   return { status, message };
@@ -20,125 +20,88 @@ export function isApiError(error: unknown): error is ApiError {
   );
 }
 
-let csrfToken = '';
+export function getAccessToken(): string | null {
+  return localStorage.getItem(ACCESS_KEY);
+}
 
-function extractCsrfToken(response: Response): void {
-  const token = response.headers.get('x-csrf-token');
-  if (token) {
-    csrfToken = token;
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_KEY);
+}
+
+export function setTokens(access: string, refresh: string): void {
+  localStorage.setItem(ACCESS_KEY, access);
+  localStorage.setItem(REFRESH_KEY, refresh);
+}
+
+export function clearTokens(): void {
+  localStorage.removeItem(ACCESS_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+}
+
+let isRefreshing = false;
+
+async function tryRefresh(): Promise<boolean> {
+  const refresh = getRefreshToken();
+  if (!refresh || isRefreshing) return false;
+  isRefreshing = true;
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: refresh }),
+    });
+    if (!res.ok) return false;
+    const json = await res.json();
+    if (json.accessToken && json.refreshToken) {
+      setTokens(json.accessToken, json.refreshToken);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  } finally {
+    isRefreshing = false;
   }
 }
 
-function getCsrfHeader(method: string): Record<string, string> {
-  const mutating = ['POST', 'PUT', 'PATCH', 'DELETE'];
-  if (mutating.includes(method.toUpperCase())) {
-    return csrfToken ? { 'x-csrf-token': csrfToken } : {};
-  }
-  return {};
+function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const token = getAccessToken();
+  return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (response.status === 401) {
+async function handle<T>(res: Response, retry?: () => Promise<Response>): Promise<T> {
+  if (res.status === 401 && retry && getRefreshToken()) {
+    if (await tryRefresh()) return handle<T>(await retry());
+    clearTokens();
     window.dispatchEvent(new CustomEvent('auth:session-expired'));
     throw createApiError(401, 'Session expired. Please login again.');
   }
 
-  // 204 No Content — nothing to parse
-  if (response.status === 204) {
-    return undefined as unknown as T;
+  if (res.status === 204 || res.headers.get('content-length') === '0') {
+    if (!res.ok) throw createApiError(res.status, 'An error occurred');
+    return undefined as T;
   }
 
-  const text = await response.text();
-  if (!text) {
-    if (!response.ok) {
-      throw createApiError(response.status, 'An error occurred');
-    }
-    return undefined as unknown as T;
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message =
+      json.detail || json.title || json.message || json.error || 'An error occurred';
+    throw createApiError(res.status, message);
   }
-
-  const json = JSON.parse(text);
-
-  if (!response.ok) {
-    throw createApiError(
-      response.status,
-      json.error || json.message || 'An error occurred',
-    );
-  }
-
-  // success() wrapped response: { success: true, data: T }
-  if ('success' in json && json.data !== undefined) {
-    return json.data as T;
-  }
-
-  // paginated() or other direct responses (no success wrapper)
   return json as T;
 }
 
 export const apiClient = {
-  async get<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    extractCsrfToken(response);
-    return handleResponse<T>(response);
-  },
-
-  async post<T>(endpoint: string, body?: unknown): Promise<T> {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getCsrfHeader('POST'),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    extractCsrfToken(response);
-    return handleResponse<T>(response);
-  },
-
-  async put<T>(endpoint: string, body: unknown): Promise<T> {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getCsrfHeader('PUT'),
-      },
-      body: JSON.stringify(body),
-    });
-    extractCsrfToken(response);
-    return handleResponse<T>(response);
-  },
-
-  async patch<T>(endpoint: string, body?: unknown): Promise<T> {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getCsrfHeader('PATCH'),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    extractCsrfToken(response);
-    return handleResponse<T>(response);
-  },
-
-  async delete<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getCsrfHeader('DELETE'),
-      },
-    });
-    extractCsrfToken(response);
-    return handleResponse<T>(response);
+  /** POST a JSON-RPC action. `path` is relative to the surface base, e.g. '/campaigns/list'. */
+  async post<T>(path: string, body?: unknown): Promise<T> {
+    const doFetch = () =>
+      fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: body !== undefined ? JSON.stringify(body) : '{}',
+      });
+    return handle<T>(await doFetch(), doFetch);
   },
 };
+
+export default apiClient;

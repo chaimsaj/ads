@@ -155,22 +155,6 @@ function mapRefund(r: RawStripeRefund): StripeRefund {
 }
 
 // =====================================================
-// QUERY HELPERS
-// =====================================================
-
-function buildQuery(params?: Record<string, unknown>): string {
-  if (!params) return '';
-  const qs = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      qs.append(key, String(value));
-    }
-  });
-  const str = qs.toString();
-  return str ? `?${str}` : '';
-}
-
-// =====================================================
 // PLACEHOLDER DATA (used when Stripe is not configured)
 // =====================================================
 
@@ -196,7 +180,7 @@ const EMPTY_STATS: StripePaymentStats = {
 export const stripePaymentsApi = {
   getBalance: async (): Promise<StripeBalance> => {
     try {
-      const data = await apiClient.get<StripeBalance>('/admin/v1/payments/balance');
+      const data = await apiClient.post<StripeBalance>('/payments/balance');
       if (!data || !Array.isArray(data.available)) return EMPTY_BALANCE;
       return data;
     } catch {
@@ -209,9 +193,10 @@ export const stripePaymentsApi = {
     endDate: string,
   ): Promise<StripePaymentStats> => {
     try {
-      const data = await apiClient.get<StripePaymentStats>(
-        `/admin/v1/payments/stats${buildQuery({ startDate, endDate })}`,
-      );
+      const data = await apiClient.post<StripePaymentStats>('/payments/stats', {
+        startDate,
+        endDate,
+      });
       if (!data || typeof data.totalRevenue !== 'number') return EMPTY_STATS;
       return {
         ...EMPTY_STATS,
@@ -233,8 +218,9 @@ export const stripePaymentsApi = {
     limit?: number;
   }): Promise<StripeTransaction[]> => {
     try {
-      const raw = await apiClient.get<RawPaymentIntent[]>(
-        `/admin/v1/payments/transactions${buildQuery(params)}`,
+      const raw = await apiClient.post<RawPaymentIntent[]>(
+        '/payments/transactions',
+        params ?? {},
       );
       if (!Array.isArray(raw)) return [];
       return raw.map(mapPaymentIntent);
@@ -248,10 +234,7 @@ export const stripePaymentsApi = {
     amount?: number;
     reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer';
   }): Promise<StripeRefund> => {
-    const raw = await apiClient.post<RawStripeRefund>(
-      '/admin/v1/payments/refunds',
-      data,
-    );
+    const raw = await apiClient.post<RawStripeRefund>('/payments/refunds', data);
     return mapRefund(raw);
   },
 
@@ -260,9 +243,7 @@ export const stripePaymentsApi = {
     status?: string;
   }): Promise<StripeDispute[]> => {
     try {
-      const raw = await apiClient.get<RawDispute[]>(
-        `/admin/v1/payments/disputes${buildQuery(params)}`,
-      );
+      const raw = await apiClient.post<RawDispute[]>('/payments/disputes', params ?? {});
       if (!Array.isArray(raw)) return [];
       return raw.map(mapDispute);
     } catch {

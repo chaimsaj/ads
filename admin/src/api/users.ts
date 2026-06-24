@@ -60,16 +60,16 @@ interface UserFilters extends PaginationParams {
   role?: User['role'];
 }
 
-function buildQueryString(params: UserFilters): string {
-  const query = new URLSearchParams();
-  if (params.page) query.set('page', String(params.page));
-  if (params.limit) query.set('limit', String(params.limit));
-  if (params.search) query.set('search', params.search);
-  if (params.sortBy) query.set('sortBy', params.sortBy);
-  if (params.sortOrder) query.set('sortOrder', params.sortOrder);
-  if (params.status) query.set('status', params.status.toUpperCase());
-  if (params.role) query.set('role', params.role.toUpperCase());
-  return query.toString();
+function buildListBody(params: UserFilters): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  if (params.page) body.page = params.page;
+  if (params.limit) body.limit = params.limit;
+  if (params.search) body.search = params.search;
+  if (params.sortBy) body.sortBy = params.sortBy;
+  if (params.sortOrder) body.sortOrder = params.sortOrder;
+  if (params.status) body.status = params.status.toUpperCase();
+  if (params.role) body.role = params.role.toUpperCase();
+  return body;
 }
 
 // =====================================================
@@ -78,32 +78,32 @@ function buildQueryString(params: UserFilters): string {
 
 export const usersApi = {
   getAll: async (params: UserFilters = {}): Promise<PaginatedResponse<User>> => {
-    const query = buildQueryString(params);
-    const raw = await apiClient.get<BackendPaginatedResponse<BackendUserDTO>>(
-      `/admin/v1/users?${query}`,
+    const raw = await apiClient.post<BackendPaginatedResponse<BackendUserDTO>>(
+      '/users/list',
+      buildListBody(params),
     );
     return mapPaginatedUsers(raw);
   },
 
   getById: async (id: string): Promise<User> => {
-    const raw = await apiClient.get<BackendUserDTO>(`/admin/v1/users/${id}`);
+    const raw = await apiClient.post<BackendUserDTO>('/users/get', { id });
     return mapUser(raw);
   },
 
   update: async (id: string, data: Partial<User>): Promise<User> => {
-    const raw = await apiClient.put<BackendUserDTO>(`/admin/v1/users/${id}`, data);
+    const raw = await apiClient.post<BackendUserDTO>('/users/update', { id, ...data });
     return mapUser(raw);
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/admin/v1/users/${id}`);
+    await apiClient.post('/users/delete', { id });
   },
 
   updateStatus: async (id: string, status: User['status']): Promise<User> => {
-    const raw = await apiClient.patch<BackendUserDTO>(
-      `/admin/v1/users/${id}/status`,
-      { status: status.toUpperCase() },
-    );
+    const raw = await apiClient.post<BackendUserDTO>('/users/status', {
+      id,
+      status: status.toUpperCase(),
+    });
     return mapUser(raw);
   },
 
@@ -115,7 +115,7 @@ export const usersApi = {
       successful: number;
       failed: number;
       errors: Array<{ id: string; error: string }>;
-    }>('/admin/v1/users/bulk', { action, ids });
+    }>('/users/bulk', { action, ids });
 
     const failedIds = (raw.errors || []).map((e) => e.id);
     const successIds = ids.filter((id) => !failedIds.includes(id));

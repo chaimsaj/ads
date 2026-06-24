@@ -60,12 +60,12 @@ function toSettingsArray(
 
 export const settingsApi = {
   get: async (): Promise<AdminSettings> => {
-    const raw = await apiClient.get<BackendSetting[]>('/admin/v1/settings');
+    const raw = await apiClient.post<BackendSetting[]>('/settings/get');
     return mapSettings(raw);
   },
 
   update: async (data: Partial<AdminSettings>): Promise<AdminSettings> => {
-    const raw = await apiClient.put<BackendSetting[]>('/admin/v1/settings', {
+    const raw = await apiClient.post<BackendSetting[]>('/settings/update', {
       settings: toSettingsArray(data),
     });
     return mapSettings(raw);

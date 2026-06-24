@@ -156,7 +156,7 @@ function mapEmailLogs(raw: BackendRecentEmailDTO[]): EmailLogsResponse {
 
 export const sendGridEmailsApi = {
   sendBulkEmail: async (data: BulkEmailRequest): Promise<BulkEmailResult> => {
-    const raw = await apiClient.post<{ sent: number; failed: number; results: unknown[] }>('/admin/v1/email/bulk', data);
+    const raw = await apiClient.post<{ sent: number; failed: number; results: unknown[] }>('/email/bulk', data);
     return {
       success: true,
       totalRecipients: (raw.sent ?? 0) + (raw.failed ?? 0),
@@ -167,7 +167,7 @@ export const sendGridEmailsApi = {
 
   getEmailLogs: async (): Promise<EmailLogsResponse> => {
     try {
-      const raw = await apiClient.get<BackendRecentEmailDTO[] | { recentEmails?: BackendRecentEmailDTO[]; logs?: BackendRecentEmailDTO[] }>('/admin/v1/email/recent');
+      const raw = await apiClient.post<BackendRecentEmailDTO[] | { recentEmails?: BackendRecentEmailDTO[]; logs?: BackendRecentEmailDTO[] }>('/email/recent');
       if (Array.isArray(raw)) {
         return mapEmailLogs(raw);
       }
@@ -185,7 +185,7 @@ export const sendGridEmailsApi = {
 
   getEmailStats: async (): Promise<EmailStats> => {
     try {
-      const raw = await apiClient.get<BackendEmailStatsDTO>('/admin/v1/email/stats');
+      const raw = await apiClient.post<BackendEmailStatsDTO>('/email/stats');
       return mapEmailStats(raw);
     } catch {
       return EMPTY_STATS;

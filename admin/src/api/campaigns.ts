@@ -74,17 +74,17 @@ interface CampaignFilters extends PaginationParams {
   userId?: string;
 }
 
-function buildQueryString(params: CampaignFilters): string {
-  const query = new URLSearchParams();
-  if (params.page) query.set('page', String(params.page));
-  if (params.limit) query.set('limit', String(params.limit));
-  if (params.search) query.set('search', params.search);
-  if (params.sortBy) query.set('sortBy', params.sortBy);
-  if (params.sortOrder) query.set('sortOrder', params.sortOrder);
-  if (params.status) query.set('status', params.status.toUpperCase());
-  if (params.adFormat) query.set('adFormat', params.adFormat.toUpperCase());
-  if (params.userId) query.set('userId', params.userId);
-  return query.toString();
+function buildListBody(params: CampaignFilters): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  if (params.page) body.page = params.page;
+  if (params.limit) body.limit = params.limit;
+  if (params.search) body.search = params.search;
+  if (params.sortBy) body.sortBy = params.sortBy;
+  if (params.sortOrder) body.sortOrder = params.sortOrder;
+  if (params.status) body.status = params.status.toUpperCase();
+  if (params.adFormat) body.adFormat = params.adFormat.toUpperCase();
+  if (params.userId) body.userId = params.userId;
+  return body;
 }
 
 // =====================================================
@@ -93,40 +93,40 @@ function buildQueryString(params: CampaignFilters): string {
 
 export const campaignsApi = {
   getAll: async (params: CampaignFilters = {}): Promise<PaginatedResponse<Campaign>> => {
-    const query = buildQueryString(params);
-    const raw = await apiClient.get<BackendPaginatedResponse<BackendCampaignDTO>>(
-      `/admin/v1/campaigns?${query}`,
+    const raw = await apiClient.post<BackendPaginatedResponse<BackendCampaignDTO>>(
+      '/campaigns/list',
+      buildListBody(params),
     );
     return mapPaginatedCampaigns(raw);
   },
 
   getById: async (id: string): Promise<Campaign> => {
-    const raw = await apiClient.get<BackendCampaignDTO>(`/admin/v1/campaigns/${id}`);
+    const raw = await apiClient.post<BackendCampaignDTO>('/campaigns/get', { id });
     return mapCampaign(raw);
   },
 
   updateStatus: async (id: string, status: string): Promise<Campaign> => {
-    const raw = await apiClient.patch<BackendCampaignDTO>(
-      `/admin/v1/campaigns/${id}/status`,
-      { status: status.toUpperCase() },
-    );
+    const raw = await apiClient.post<BackendCampaignDTO>('/campaigns/status', {
+      id,
+      status: status.toUpperCase(),
+    });
     return mapCampaign(raw);
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/admin/v1/campaigns/${id}`);
+    await apiClient.post('/campaigns/delete', { id });
   },
 
   approve: async (id: string): Promise<Campaign> => {
-    const raw = await apiClient.post<BackendCampaignDTO>(`/admin/v1/campaigns/${id}/approve`);
+    const raw = await apiClient.post<BackendCampaignDTO>('/campaigns/approve', { id });
     return mapCampaign(raw);
   },
 
   reject: async (id: string, reason?: string): Promise<Campaign> => {
-    const raw = await apiClient.post<BackendCampaignDTO>(
-      `/admin/v1/campaigns/${id}/reject`,
-      { reason: reason || 'Rejected by admin' },
-    );
+    const raw = await apiClient.post<BackendCampaignDTO>('/campaigns/reject', {
+      id,
+      reason: reason || 'Rejected by admin',
+    });
     return mapCampaign(raw);
   },
 
@@ -136,7 +136,7 @@ export const campaignsApi = {
   ): Promise<{ success: string[]; failed: string[] }> => {
     if (action === 'delete') {
       const raw = await apiClient.post<{ successful: number; failed: number; errors: Array<{ id: string; error: string }> }>(
-        '/admin/v1/campaigns/bulk/delete',
+        '/campaigns/bulk-delete',
         { ids },
       );
       const failedIds = (raw.errors || []).map((e) => e.id);
@@ -149,7 +149,7 @@ export const campaignsApi = {
       pause: 'PAUSED',
     };
     const raw = await apiClient.post<{ successful: number; failed: number; errors: Array<{ id: string; error: string }> }>(
-      '/admin/v1/campaigns/bulk/status',
+      '/campaigns/bulk-status',
       { ids, status: statusMap[action] },
     );
     const failedIds = (raw.errors || []).map((e) => e.id);
