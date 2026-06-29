@@ -30,11 +30,30 @@ function mapEvent(e: BackendAdEvent): Activity {
   };
 }
 
+export interface BreakdownBucket {
+  key: string;
+  served: number;
+  impressed: number;
+  clicked: number;
+  converted: number;
+}
+
+export interface AdBreakdown {
+  byPlatform: BreakdownBucket[];
+  byFormat: BreakdownBucket[];
+  byLocation: BreakdownBucket[];
+}
+
 export const activityApi = {
   /** Recent ad-delivery events across the platform (admin), newest first. */
   getRecent: async (limit = 12, campaignId?: string): Promise<Activity[]> => {
     const events = await apiClient.post<BackendAdEvent[]>('/activity', { limit, campaignId });
     return events.map(mapEvent);
+  },
+
+  /** Where ads are shown: counts grouped by platform, format, and location. */
+  getBreakdown: async (campaignId?: string): Promise<AdBreakdown> => {
+    return apiClient.post<AdBreakdown>('/activity/breakdown', { campaignId });
   },
 };
 

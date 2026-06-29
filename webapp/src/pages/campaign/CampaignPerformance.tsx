@@ -10,7 +10,7 @@ import {
 } from '../../api/campaigns';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { formatCurrency, formatNumber, formatPercent, formatDate as formatDateValue, formatDateTime } from '../../utils/formatters';
-import { activityApi, type AdEvent } from '../../api/activity';
+import { activityApi, type AdEvent, type AdBreakdown, type BreakdownBucket } from '../../api/activity';
 import styles from './CampaignPerformance.module.css';
 
 type DayRange = 7 | 14 | 30;
@@ -26,12 +26,34 @@ const EVENT_LABEL: Record<AdEvent['state'], string> = {
   converted: 'Conversion',
 };
 
+function BreakdownColumn({ title, buckets }: { title: string; buckets: BreakdownBucket[] }) {
+  return (
+    <div style={{ flex: 1, minWidth: 200 }}>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: 12, color: '#8895a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h4>
+      {buckets.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#8895a1' }}>No data yet.</p>
+      ) : (
+        buckets.slice(0, 6).map((b) => {
+          const ctr = b.impressed > 0 ? (b.clicked / b.impressed) * 100 : 0;
+          return (
+            <div key={b.key} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eef1f4', fontSize: 13 }}>
+              <span style={{ color: '#0f2a36', fontWeight: 500 }}>{b.key}</span>
+              <span style={{ color: '#52606d' }}>{formatNumber(b.impressed)} views · {formatPercent(ctr, 1)} CTR</span>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 export function CampaignPerformance() {
   const { id } = useParams();
   const { user } = useCurrentUser();
   const [summary, setSummary] = useState<PerformanceSummary | null>(null);
   const [dailyData, setDailyData] = useState<DailyPerformance[]>([]);
   const [events, setEvents] = useState<AdEvent[]>([]);
+  const [breakdown, setBreakdown] = useState<AdBreakdown | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dayRange, setDayRange] = useState<DayRange>(30);
@@ -50,14 +72,16 @@ export function CampaignPerformance() {
     try {
       setIsLoading(true);
       setError(null);
-      const [summaryData, daily, recent] = await Promise.all([
+      const [summaryData, daily, recent, dims] = await Promise.all([
         campaignsApi.getPerformance(id!),
         campaignsApi.getDailyPerformance(id!, dayRange),
         activityApi.getRecent(id!, 15).catch((): AdEvent[] => []),
+        activityApi.getBreakdown(id!).catch((): AdBreakdown | null => null),
       ]);
       setSummary(summaryData);
       setDailyData(daily);
       setEvents(recent);
+      setBreakdown(dims);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load performance data');
     } finally {
@@ -332,6 +356,18 @@ export function CampaignPerformance() {
               </>
             )}
           </div>
+
+          {/* Where it's shown (platform / format / location) */}
+          {breakdown && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Where It's Shown</h2>
+              <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+                <BreakdownColumn title="By Platform" buckets={breakdown.byPlatform} />
+                <BreakdownColumn title="By Format" buckets={breakdown.byFormat} />
+                <BreakdownColumn title="By Location" buckets={breakdown.byLocation} />
+              </div>
+            </div>
+          )}
 
           {/* Recent activity (granular ad-delivery events) */}
           <div className={styles.section}>

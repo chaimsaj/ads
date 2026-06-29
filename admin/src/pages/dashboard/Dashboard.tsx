@@ -1,17 +1,40 @@
 import { Users, Megaphone, DollarSign, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 import { useQuery } from '../../lib/queryCache';
-import { formatCurrency, formatNumber, formatDateTime } from '../../utils/formatters';
+import { formatCurrency, formatNumber, formatDateTime, formatPercent } from '../../utils/formatters';
 import { dashboardApi } from '../../api/dashboard';
+import { activityApi, type AdBreakdown, type BreakdownBucket } from '../../api/activity';
 import { useAuth } from '../../context/AuthContext';
 import type { DashboardData } from '../../types';
 import styles from './Dashboard.module.css';
+
+function BreakdownTable({ title, buckets }: { title: string; buckets: BreakdownBucket[] }) {
+  return (
+    <div style={{ flex: 1, minWidth: 220 }}>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: 13, color: '#52606d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h4>
+      {buckets.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#8895a1' }}>No data yet.</p>
+      ) : (
+        buckets.slice(0, 6).map((b) => {
+          const ctr = b.impressed > 0 ? (b.clicked / b.impressed) * 100 : 0;
+          return (
+            <div key={b.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eef1f4', fontSize: 13 }}>
+              <span style={{ color: '#0f2a36', fontWeight: 500 }}>{b.key}</span>
+              <span style={{ color: '#52606d' }}>{formatNumber(b.impressed)} views · {formatPercent(ctr, 1)} CTR</span>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
 
 export function Dashboard() {
   const { user } = useAuth();
   const { data, isLoading, error } = useQuery<DashboardData>('dashboard:stats', () =>
     dashboardApi.getStats()
   );
+  const { data: breakdown } = useQuery<AdBreakdown>('admin:breakdown', () => activityApi.getBreakdown());
 
   if (isLoading) {
     return (
@@ -133,6 +156,21 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {breakdown && (
+        <Card style={{ marginTop: 'var(--space-12, 24px)' }}>
+          <CardHeader>
+            <CardTitle>Where Ads Are Shown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+              <BreakdownTable title="By Platform" buckets={breakdown.byPlatform} />
+              <BreakdownTable title="By Format" buckets={breakdown.byFormat} />
+              <BreakdownTable title="By Location" buckets={breakdown.byLocation} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
