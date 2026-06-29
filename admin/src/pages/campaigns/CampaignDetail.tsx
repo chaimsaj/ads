@@ -167,6 +167,7 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
       id: 'analytics',
       label: 'Analytics',
       content: (
+        <div>
         <div className={styles.analytics}>
           <div className={styles.metricCard}>
             <BarChart3 size={24} />
@@ -214,6 +215,40 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
               <span className={styles.metricLabel}>Return on Investment</span>
             </div>
           </div>
+        </div>
+
+        {(() => {
+          const days = campaign.dailyStats ?? [];
+          const max = Math.max(1, ...days.map((d) => d.impressions));
+          return (
+            <div style={{ marginTop: 24 }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#0f2a36' }}>
+                Daily Performance (last {days.length || 0} days)
+              </h4>
+              {days.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#8895a1' }}>No daily data yet for this campaign.</p>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140, padding: '0 2px' }}>
+                    {days.map((d) => (
+                      <div key={d.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 120 }}>
+                          <div title={`Impressions: ${d.impressions}`} style={{ width: 7, height: `${(d.impressions / max) * 120}px`, backgroundColor: '#0f766e', borderRadius: 2 }} />
+                          <div title={`Clicks: ${d.clicks}`} style={{ width: 7, height: `${(d.clicks / max) * 120}px`, backgroundColor: '#5e8fd6', borderRadius: 2 }} />
+                        </div>
+                        <span style={{ fontSize: 10, color: '#8895a1' }}>{d.date.slice(5)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 12, color: '#52606d' }}>
+                    <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#0f766e', marginRight: 6 }} />Impressions</span>
+                    <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#5e8fd6', marginRight: 6 }} />Clicks</span>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
         </div>
       ),
     },

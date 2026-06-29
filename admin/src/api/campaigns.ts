@@ -1,6 +1,6 @@
 import { apiClient } from './client';
 import { mapPaginatedResponse, type BackendPaginatedResponse } from './pagination';
-import type { Campaign, PaginatedResponse, PaginationParams } from '../types';
+import type { Campaign, DailyStat, PaginatedResponse, PaginationParams } from '../types';
 
 // =====================================================
 // BACKEND DTO
@@ -108,8 +108,8 @@ export const campaignsApi = {
   },
 
   getById: async (id: string): Promise<Campaign> => {
-    const raw = await apiClient.post<BackendCampaignDTO>('/campaigns/get', { id });
-    return mapCampaign(raw);
+    const raw = await apiClient.post<BackendCampaignDTO & { dailyStats?: DailyStat[] }>('/campaigns/get', { id });
+    return { ...mapCampaign(raw), dailyStats: raw.dailyStats ?? [] };
   },
 
   updateStatus: async (id: string, status: string): Promise<Campaign> => {

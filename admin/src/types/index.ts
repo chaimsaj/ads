@@ -45,6 +45,15 @@ export interface Campaign {
   startDate: string;
   endDate: string;
   createdAt: string;
+  dailyStats?: DailyStat[];
+}
+
+export interface DailyStat {
+  date: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend: number;
 }
 
 export interface AdminSettings {
