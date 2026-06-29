@@ -62,8 +62,13 @@ export interface CampaignSummary {
   status: 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'draft' | 'rejected';
   adFormat: 'Banner' | 'Interstitial' | 'Push';
   budget: number;
+  spent: number;
   impressions: number;
   clicks: number;
+  conversions: number;
+  ctr: number;
+  revenue: number;
+  roi: number;
 }
 
 export interface CampaignDetail {
@@ -154,6 +159,8 @@ interface BackendCampaignDTO {
   clicks: number;
   conversions: number;
   ctr: number;
+  revenue: number;
+  roi: number;
   createdAt: string;
 }
 
@@ -233,8 +240,13 @@ function mapCampaignSummary(dto: BackendCampaignDTO): CampaignSummary {
     status: status as CampaignSummary['status'],
     adFormat: dto.adFormat as CampaignSummary['adFormat'],
     budget: Number(dto.budget) || 0,
+    spent: Number(dto.spent) || 0,
     impressions: Number(dto.impressions) || 0,
     clicks: Number(dto.clicks) || 0,
+    conversions: Number(dto.conversions) || 0,
+    ctr: Number(dto.ctr) || 0,
+    revenue: Number(dto.revenue) || 0,
+    roi: Number(dto.roi) || 0,
   };
 }
 

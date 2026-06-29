@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, Menu, X, Settings, LogOut, User } from 'lucide-react';
+import { Bell, ChevronDown, Menu, X, Settings, LogOut, User, BarChart3 } from 'lucide-react';
 import { Button } from '../ui';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Header.module.css';
@@ -124,6 +124,10 @@ export function Header({ variant = 'landing', title, user }: HeaderProps) {
                     <Link to="/settings" className={styles.dropdownItem} onClick={() => setUserMenuOpen(false)}>
                       <User size={16} />
                       Profile
+                    </Link>
+                    <Link to="/reports" className={styles.dropdownItem} onClick={() => setUserMenuOpen(false)}>
+                      <BarChart3 size={16} />
+                      Reports
                     </Link>
                     <Link to="/settings" className={styles.dropdownItem} onClick={() => setUserMenuOpen(false)}>
                       <Settings size={16} />

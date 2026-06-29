@@ -3,6 +3,7 @@ import { AuthProvider, ProtectedRoute } from './context/AuthContext';
 import {
   LandingPage,
   Dashboard,
+  Reports,
   StripeSuccess,
   SignIn,
   SignUp,
@@ -45,6 +46,7 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
           {/* Campaign Creation Flow */}
