@@ -39,14 +39,23 @@ export const StatusBadge = ({ status }: { status: string }) => {
     review: 'warning',
     rejected: 'error',
     draft: 'default',
+    super_admin: 'primary',
     admin: 'primary',
+    moderator: 'info',
+    viewer: 'default',
     user: 'default',
     advertiser: 'info',
   };
 
+  // Accept wire values (e.g. "super_admin") and render a human-readable, title-cased label.
+  const label = status
+    .split(/[_\s]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
   return (
     <Badge variant={variantMap[status] || 'default'} dot>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {label}
     </Badge>
   );
 };

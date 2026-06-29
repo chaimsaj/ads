@@ -16,6 +16,7 @@ import { Card, Button, Table, StatusBadge, Badge, Pagination, ConfirmDialog } fr
 import { useCampaigns } from '../../hooks/useCampaigns';
 import { CampaignDetail } from './CampaignDetail';
 import { exportCampaignsToCSV } from '../../utils/export';
+import { formatCurrency, formatDate, formatPercent, titleCase } from '../../utils/formatters';
 import { useToast } from '../../context/ToastContext';
 import type { Campaign, TableColumn } from '../../types';
 import styles from './Campaigns.module.css';
@@ -122,7 +123,7 @@ export function Campaigns() {
       sortable: true,
       render: (campaign) => (
         <Badge variant="default" size="sm">
-          {campaign.adFormat}
+          {titleCase(campaign.adFormat)}
         </Badge>
       ),
     },
@@ -130,7 +131,7 @@ export function Campaigns() {
       key: 'budget',
       label: 'Budget',
       sortable: true,
-      render: (campaign) => `$${campaign.budget.toLocaleString()}`,
+      render: (campaign) => formatCurrency(campaign.budget),
     },
     {
       key: 'spent',
@@ -138,11 +139,11 @@ export function Campaigns() {
       sortable: true,
       render: (campaign) => (
         <div className={styles.spentCell}>
-          <span>${campaign.spent.toLocaleString()}</span>
+          <span>{formatCurrency(campaign.spent)}</span>
           <div className={styles.spentBar}>
             <div
               className={styles.spentProgress}
-              style={{ width: `${(campaign.spent / campaign.budget) * 100}%` }}
+              style={{ width: `${Math.min((campaign.spent / campaign.budget) * 100, 100)}%` }}
             />
           </div>
         </div>
@@ -152,13 +153,13 @@ export function Campaigns() {
       key: 'ctr',
       label: 'CTR',
       sortable: true,
-      render: (campaign) => `${campaign.ctr.toFixed(2)}%`,
+      render: (campaign) => formatPercent(campaign.ctr),
     },
     {
       key: 'createdAt',
       label: 'Created',
       sortable: true,
-      render: (campaign) => new Date(campaign.createdAt).toLocaleDateString(),
+      render: (campaign) => formatDate(campaign.createdAt),
     },
     {
       key: 'actions',

@@ -4,6 +4,8 @@ import { Pause, Play, Pencil, Loader, Send } from 'lucide-react';
 import { Header } from '../../components/layout';
 import { Button, Badge } from '../../components/ui';
 import { campaignsApi, type CampaignDetail } from '../../api/campaigns';
+import { invalidate } from '../../lib/queryCache';
+import { formatCurrency } from '../../utils/formatters';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import styles from './CampaignDetails.module.css';
 
@@ -40,6 +42,7 @@ export function CampaignDetails() {
       setStatusUpdating(true);
       setError(null);
       await campaignsApi.updateStatus(campaign.id, 'paused');
+      invalidate('webapp:dashboard');
       setCampaign({ ...campaign, status: 'paused' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to pause campaign');
@@ -54,6 +57,7 @@ export function CampaignDetails() {
       setStatusUpdating(true);
       setError(null);
       await campaignsApi.updateStatus(campaign.id, 'active');
+      invalidate('webapp:dashboard');
       setCampaign({ ...campaign, status: 'active' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resume campaign');
@@ -68,6 +72,7 @@ export function CampaignDetails() {
       setStatusUpdating(true);
       setError(null);
       await campaignsApi.updateStatus(campaign.id, 'review');
+      invalidate('webapp:dashboard');
       setCampaign({ ...campaign, status: 'review' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit campaign for review');
@@ -167,7 +172,7 @@ export function CampaignDetails() {
                   </div>
                   <div className={styles.field}>
                     <span className={styles.fieldLabel}>Budget</span>
-                    <span className={styles.fieldValue}>${campaign.budget.toFixed(2)}</span>
+                    <span className={styles.fieldValue}>{formatCurrency(campaign.budget)}</span>
                   </div>
                   <div className={styles.field}>
                     <span className={styles.fieldLabel}>Transaction ID</span>

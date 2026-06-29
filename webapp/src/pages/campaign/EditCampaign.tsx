@@ -6,6 +6,7 @@ import { Button, Input } from '../../components/ui';
 import { campaignsApi } from '../../api/campaigns';
 import type { CampaignDetail } from '../../api/campaigns';
 import { apiClient, isApiError } from '../../api/client';
+import { invalidate } from '../../lib/queryCache';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import styles from './EditCampaign.module.css';
 
@@ -123,6 +124,7 @@ export function EditCampaign() {
         },
         budget: parseFloat(formData.budget),
       });
+      invalidate('webapp:dashboard');
       setHasChanges(false);
       navigate(`/campaign/${id}`);
     } catch (err) {

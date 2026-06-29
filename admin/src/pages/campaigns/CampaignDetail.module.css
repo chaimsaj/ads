@@ -31,6 +31,21 @@
   gap: var(--spacing-sm);
 }
 
+.banner {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary, #f5f5f5);
+  border-radius: var(--radius-md, 8px);
+}
+
+.bannerImage {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: var(--radius-sm, 4px);
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -109,8 +124,8 @@
 }
 
 .analytics {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-md);
 }
 

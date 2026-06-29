@@ -4,6 +4,7 @@ import { Modal, ModalFooter, Button, Input, StatusBadge, Tabs } from '../../comp
 import { usersApi } from '../../api/users';
 import { useToast } from '../../context/ToastContext';
 import { isApiError } from '../../api/client';
+import { formatCurrency, formatDate, formatDateTime, titleCase } from '../../utils/formatters';
 import type { User } from '../../types';
 import styles from './UserDetail.module.css';
 
@@ -107,7 +108,7 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
             <div className={styles.stat}>
               <div className={styles.statIcon}><CreditCard size={20} /></div>
               <div className={styles.statContent}>
-                <span className={styles.statValue}>${user.totalSpend.toLocaleString()}</span>
+                <span className={styles.statValue}>{formatCurrency(user.totalSpend)}</span>
                 <span className={styles.statLabel}>Total Spend</span>
               </div>
             </div>
@@ -116,16 +117,16 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
           <div className={styles.details}>
             <div className={styles.detailItem}>
               <UserIcon size={16} />
-              <span>Role: <strong>{user.role}</strong></span>
+              <span>Role: <strong>{titleCase(user.role)}</strong></span>
             </div>
             <div className={styles.detailItem}>
               <Calendar size={16} />
-              <span>Joined: <strong>{new Date(user.createdAt).toLocaleDateString()}</strong></span>
+              <span>Joined: <strong>{formatDate(user.createdAt)}</strong></span>
             </div>
             {user.lastLogin && (
               <div className={styles.detailItem}>
                 <Mail size={16} />
-                <span>Last login: <strong>{new Date(user.lastLogin).toLocaleString()}</strong></span>
+                <span>Last login: <strong>{formatDateTime(user.lastLogin)}</strong></span>
               </div>
             )}
           </div>

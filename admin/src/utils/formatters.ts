@@ -30,3 +30,11 @@ export function formatNumber(num: number): string {
 export function formatPercent(num: number, decimals = 2): string {
   return `${num.toFixed(decimals)}%`;
 }
+
+// Title-cases a wire value for display, e.g. "super_admin" -> "Super Admin", "banner" -> "Banner".
+export function titleCase(value: string): string {
+  return value
+    .split(/[_\s]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}

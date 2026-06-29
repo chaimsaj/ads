@@ -32,11 +32,16 @@ export interface Campaign {
   adType: 'user' | 'event' | 'brand';
   adFormat: 'banner' | 'interstitial' | 'push';
   boostType: 'standard' | 'premium';
+  bannerImage: string | null;
+  destinationUrl: string | null;
   budget: number;
   spent: number;
   impressions: number;
   clicks: number;
+  conversions: number;
   ctr: number;
+  revenue: number;
+  roi: number;
   startDate: string;
   endDate: string;
   createdAt: string;
@@ -70,7 +75,7 @@ export interface DashboardStats {
 
 export interface Activity {
   id: string;
-  type: 'user_signup' | 'campaign_created' | 'campaign_approved' | 'campaign_rejected' | 'payment_received';
+  type: 'served' | 'impressed' | 'clicked' | 'converted';
   description: string;
   timestamp: string;
   metadata?: Record<string, unknown>;

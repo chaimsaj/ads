@@ -14,6 +14,7 @@ export interface PerformanceSummary {
   locationName: string | null;
   budget: number;
   spend: number;
+  revenue: number;
   impressions: number;
   clicks: number;
   applications: number;
@@ -61,6 +62,8 @@ export interface CampaignSummary {
   status: 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'draft' | 'rejected';
   adFormat: 'Banner' | 'Interstitial' | 'Push';
   budget: number;
+  impressions: number;
+  clicks: number;
 }
 
 export interface CampaignDetail {
@@ -230,6 +233,8 @@ function mapCampaignSummary(dto: BackendCampaignDTO): CampaignSummary {
     status: status as CampaignSummary['status'],
     adFormat: dto.adFormat as CampaignSummary['adFormat'],
     budget: Number(dto.budget) || 0,
+    impressions: Number(dto.impressions) || 0,
+    clicks: Number(dto.clicks) || 0,
   };
 }
 

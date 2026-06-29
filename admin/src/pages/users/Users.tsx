@@ -4,6 +4,7 @@ import { Card, Button, Table, StatusBadge, Badge, Pagination, ConfirmDialog } fr
 import { useUsers } from '../../hooks/useUsers';
 import { UserDetail } from './UserDetail';
 import { exportUsersToCSV } from '../../utils/export';
+import { formatCurrency, formatDate } from '../../utils/formatters';
 import { useToast } from '../../context/ToastContext';
 import type { User, TableColumn } from '../../types';
 import styles from './Users.module.css';
@@ -103,13 +104,13 @@ export function Users() {
       key: 'totalSpend',
       label: 'Total Spend',
       sortable: true,
-      render: (user) => `$${user.totalSpend.toLocaleString()}`,
+      render: (user) => formatCurrency(user.totalSpend),
     },
     {
       key: 'createdAt',
       label: 'Joined',
       sortable: true,
-      render: (user) => new Date(user.createdAt).toLocaleDateString(),
+      render: (user) => formatDate(user.createdAt),
     },
     {
       key: 'actions',

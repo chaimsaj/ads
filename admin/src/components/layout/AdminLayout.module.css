@@ -6,5 +6,31 @@
 .main {
   padding-top: var(--header-height);
   min-height: 100vh;
+  margin-left: var(--sidebar-width);
   transition: margin-left var(--transition-base);
+}
+
+.main[data-collapsed='true'] {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Backdrop behind the mobile drawer. */
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Sidebar becomes an off-canvas drawer; content spans the full width. */
+  .main,
+  .main[data-collapsed='true'] {
+    margin-left: 0;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 90;
+  }
 }

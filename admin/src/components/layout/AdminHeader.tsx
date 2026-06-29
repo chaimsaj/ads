@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, User, Settings } from 'lucide-react';
+import { Bell, User, Settings, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import styles from './AdminHeader.module.css';
 
 interface AdminHeaderProps {
   sidebarCollapsed: boolean;
+  onMenuClick?: () => void;
 }
 
 function formatRole(role: string): string {
@@ -15,7 +16,7 @@ function formatRole(role: string): string {
     .join(' ');
 }
 
-export function AdminHeader({ sidebarCollapsed }: AdminHeaderProps) {
+export function AdminHeader({ sidebarCollapsed, onMenuClick }: AdminHeaderProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -34,12 +35,11 @@ export function AdminHeader({ sidebarCollapsed }: AdminHeaderProps) {
   }, [notificationOpen]);
 
   return (
-    <header
-      className={styles.header}
-      style={{
-        left: sidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)',
-      }}
-    >
+    <header className={styles.header} data-collapsed={sidebarCollapsed}>
+      <button className={styles.menuBtn} aria-label="Open menu" onClick={() => onMenuClick?.()}>
+        <Menu size={20} />
+      </button>
+
       <div className={styles.actions}>
         <div className={styles.notificationWrapper} ref={notificationRef}>
           <button

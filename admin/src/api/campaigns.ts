@@ -26,6 +26,8 @@ interface BackendCampaignDTO {
   clicks: number;
   conversions: number;
   ctr: number;
+  revenue: number;
+  roi: number;
   createdAt: string;
 }
 
@@ -43,11 +45,16 @@ function mapCampaign(dto: BackendCampaignDTO): Campaign {
     adType: (dto.adType || '').toLowerCase() as Campaign['adType'],
     adFormat: (dto.adFormat || '').toLowerCase() as Campaign['adFormat'],
     boostType: (dto.boostType || 'standard').toLowerCase() as Campaign['boostType'],
+    bannerImage: dto.bannerImage ?? null,
+    destinationUrl: dto.destinationUrl ?? null,
     budget: Number(dto.budget) || 0,
     spent: Number(dto.spent) || 0,
     impressions: Number(dto.impressions) || 0,
     clicks: Number(dto.clicks) || 0,
+    conversions: Number(dto.conversions) || 0,
     ctr: Number(dto.ctr) || 0,
+    revenue: Number(dto.revenue) || 0,
+    roi: Number(dto.roi) || 0,
     startDate: dto.startDate || '',
     endDate: dto.endDate || '',
     createdAt: dto.createdAt || '',

@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import type { DashboardData } from '../types';
+import { activityApi } from './activity';
+import type { Activity, DashboardData } from '../types';
 
 interface BackendDashboardStats {
   totalUsers: number;
@@ -15,7 +16,10 @@ interface BackendDashboardStats {
 
 export const dashboardApi = {
   getStats: async (): Promise<DashboardData> => {
-    const raw = await apiClient.post<BackendDashboardStats>('/dashboard/stats');
+    const [raw, recentActivity] = await Promise.all([
+      apiClient.post<BackendDashboardStats>('/dashboard/stats'),
+      activityApi.getRecent(12).catch((): Activity[] => []),
+    ]);
     return {
       stats: {
         totalUsers: raw.totalUsers ?? 0,
@@ -28,7 +32,7 @@ export const dashboardApi = {
         campaignGrowth: 0,
         revenueGrowth: 0,
       },
-      recentActivity: [],
+      recentActivity,
     };
   },
 };

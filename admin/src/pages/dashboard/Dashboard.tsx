@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
 import { Users, Megaphone, DollarSign, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
-import { useFetch } from '../../hooks/useFetch';
+import { useQuery } from '../../lib/queryCache';
+import { formatCurrency, formatNumber, formatDateTime } from '../../utils/formatters';
 import { dashboardApi } from '../../api/dashboard';
 import { useAuth } from '../../context/AuthContext';
 import type { DashboardData } from '../../types';
@@ -9,8 +9,9 @@ import styles from './Dashboard.module.css';
 
 export function Dashboard() {
   const { user } = useAuth();
-  const fetchData = useCallback(() => dashboardApi.getStats(), []);
-  const { data, isLoading, error } = useFetch<DashboardData>(fetchData, []);
+  const { data, isLoading, error } = useQuery<DashboardData>('dashboard:stats', () =>
+    dashboardApi.getStats()
+  );
 
   if (isLoading) {
     return (
@@ -53,21 +54,21 @@ export function Dashboard() {
       <div className={styles.statsGrid}>
         <StatCard
           title="Total Users"
-          value={stats.totalUsers.toLocaleString()}
+          value={formatNumber(stats.totalUsers)}
           change={stats.userGrowth}
           icon={<Users size={24} />}
           color="primary"
         />
         <StatCard
           title="Active Campaigns"
-          value={stats.activeCampaigns.toLocaleString()}
+          value={formatNumber(stats.activeCampaigns)}
           change={stats.campaignGrowth}
           icon={<Megaphone size={24} />}
           color="info"
         />
         <StatCard
           title="Total Revenue"
-          value={`$${stats.totalRevenue.toLocaleString()}`}
+          value={formatCurrency(stats.totalRevenue)}
           change={stats.revenueGrowth}
           icon={<DollarSign size={24} />}
           color="success"
@@ -96,7 +97,7 @@ export function Dashboard() {
                     <div className={styles.activityContent}>
                       <p className={styles.activityMessage}>{activity.description}</p>
                       <span className={styles.activityTime}>
-                        {new Date(activity.timestamp).toLocaleString()}
+                        {formatDateTime(activity.timestamp)}
                       </span>
                     </div>
                   </li>
@@ -114,11 +115,11 @@ export function Dashboard() {
             <div className={styles.quickStatsList}>
               <div className={styles.quickStat}>
                 <span className={styles.quickStatLabel}>Active Users</span>
-                <span className={styles.quickStatValue}>{stats.activeUsers.toLocaleString()}</span>
+                <span className={styles.quickStatValue}>{formatNumber(stats.activeUsers)}</span>
               </div>
               <div className={styles.quickStat}>
                 <span className={styles.quickStatLabel}>Total Campaigns</span>
-                <span className={styles.quickStatValue}>{stats.totalCampaigns.toLocaleString()}</span>
+                <span className={styles.quickStatValue}>{formatNumber(stats.totalCampaigns)}</span>
               </div>
               <div className={styles.quickStat}>
                 <span className={styles.quickStatLabel}>Pending Reviews</span>

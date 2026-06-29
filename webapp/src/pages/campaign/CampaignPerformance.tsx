@@ -9,32 +9,29 @@ import {
   type DailyPerformance,
 } from '../../api/campaigns';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { formatCurrency, formatNumber, formatPercent, formatDate as formatDateValue, formatDateTime } from '../../utils/formatters';
+import { activityApi, type AdEvent } from '../../api/activity';
 import styles from './CampaignPerformance.module.css';
 
 type DayRange = 7 | 14 | 30;
 
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatNumber(value: number): string {
-  return value.toLocaleString('en-US');
-}
-
-function formatPercent(value: number): string {
-  return `${value.toFixed(2)}%`;
-}
-
 function formatDate(iso: string | null): string {
-  if (!iso) return '-';
-  return iso.slice(0, 10);
+  return iso ? formatDateValue(iso) : '-';
 }
+
+const EVENT_LABEL: Record<AdEvent['state'], string> = {
+  served: 'Ad served',
+  impressed: 'Impression',
+  clicked: 'Click',
+  converted: 'Conversion',
+};
 
 export function CampaignPerformance() {
   const { id } = useParams();
   const { user } = useCurrentUser();
   const [summary, setSummary] = useState<PerformanceSummary | null>(null);
   const [dailyData, setDailyData] = useState<DailyPerformance[]>([]);
+  const [events, setEvents] = useState<AdEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dayRange, setDayRange] = useState<DayRange>(30);
@@ -53,12 +50,14 @@ export function CampaignPerformance() {
     try {
       setIsLoading(true);
       setError(null);
-      const [summaryData, daily] = await Promise.all([
+      const [summaryData, daily, recent] = await Promise.all([
         campaignsApi.getPerformance(id!),
         campaignsApi.getDailyPerformance(id!, dayRange),
+        activityApi.getRecent(id!, 15).catch((): AdEvent[] => []),
       ]);
       setSummary(summaryData);
       setDailyData(daily);
+      setEvents(recent);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load performance data');
     } finally {
@@ -216,6 +215,10 @@ export function CampaignPerformance() {
               <span className={styles.kpiLabel}>Deposits</span>
               <span className={styles.kpiValue}>{formatNumber(summary.deposits)}</span>
             </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Revenue</span>
+              <span className={styles.kpiValue}>{formatCurrency(summary.revenue)}</span>
+            </div>
             <div className={`${styles.kpiCard} ${styles.kpiCardHighlight}`}>
               <span className={styles.kpiLabel}>ROI</span>
               <span className={styles.kpiValue}>{formatPercent(summary.roi)}</span>
@@ -224,10 +227,10 @@ export function CampaignPerformance() {
 
           {/* ROI Statement */}
           <div className={styles.roiStatement}>
-            You spent <strong>{formatCurrency(summary.spend)}</strong>, received{' '}
-            <strong>{formatNumber(summary.clicks)}</strong> clicks,{' '}
-            <strong>{formatNumber(summary.applications)}</strong> applications, and{' '}
-            <strong>{formatNumber(summary.deposits)}</strong> deposits, resulting in an ROI of{' '}
+            You spent <strong>{formatCurrency(summary.spend)}</strong> and earned{' '}
+            <strong>{formatCurrency(summary.revenue)}</strong> in revenue from{' '}
+            <strong>{formatNumber(summary.applications)}</strong> applications and{' '}
+            <strong>{formatNumber(summary.deposits)}</strong> deposits, an ROI of{' '}
             <strong>{formatPercent(summary.roi)}</strong>.
           </div>
 
@@ -327,6 +330,40 @@ export function CampaignPerformance() {
                   </span>
                 </div>
               </>
+            )}
+          </div>
+
+          {/* Recent activity (granular ad-delivery events) */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Recent Activity</h2>
+            {events.length === 0 ? (
+              <div className={styles.emptyChart}>No recent ad activity for this campaign.</div>
+            ) : (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {events.map((e) => (
+                  <li
+                    key={e.servedAdId + e.state + e.servedAt}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #eef1f4' }}
+                  >
+                    <span
+                      style={{
+                        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                        backgroundColor:
+                          e.state === 'converted' ? '#16a34a'
+                          : e.state === 'clicked' ? '#0f766e'
+                          : e.state === 'impressed' ? '#2563eb' : '#94a3b8',
+                      }}
+                    />
+                    <span style={{ flex: 1, fontSize: 14, color: '#3b4754' }}>
+                      {EVENT_LABEL[e.state]} · {e.format}
+                      {e.deviceId ? ` · ${e.deviceId.slice(0, 16)}` : ''}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#8895a1', whiteSpace: 'nowrap' }}>
+                      {formatDateTime(e.servedAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>

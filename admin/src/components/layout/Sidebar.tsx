@@ -15,7 +15,9 @@ import styles from './Sidebar.module.css';
 
 interface SidebarProps {
   collapsed: boolean;
+  mobileOpen?: boolean;
   onToggle: () => void;
+  onMobileClose?: () => void;
 }
 
 const navItems = [
@@ -27,7 +29,7 @@ const navItems = [
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, mobileOpen = false, onToggle, onMobileClose }: SidebarProps) {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -37,7 +39,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   };
 
   return (
-    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+    <aside
+      className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''} ${mobileOpen ? styles.mobileOpen : ''}`}
+    >
       <div className={styles.header}>
         <div className={styles.logo}>
           {!collapsed && (
@@ -59,6 +63,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <li key={item.path}>
               <NavLink
                 to={item.path}
+                onClick={() => onMobileClose?.()}
                 className={({ isActive }) =>
                   `${styles.navLink} ${isActive ? styles.active : ''}`
                 }

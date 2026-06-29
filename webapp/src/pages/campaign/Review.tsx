@@ -6,6 +6,7 @@ import { Button } from '../../components/ui';
 import { campaignsApi } from '../../api/campaigns';
 import type { CampaignEstimate } from '../../api/campaigns';
 import { isApiError } from '../../api/client';
+import { invalidate } from '../../lib/queryCache';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import styles from './Review.module.css';
 
@@ -123,6 +124,7 @@ export function Review() {
       });
 
       localStorage.removeItem('campaignWizard');
+      invalidate('webapp:dashboard');
       setIsSubmitted(true);
     } catch (err) {
       if (isApiError(err)) {

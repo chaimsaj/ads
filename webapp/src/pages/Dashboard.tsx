@@ -25,6 +25,8 @@ import { Header, Footer } from '../components/layout';
 import { Button, Badge, Input } from '../components/ui';
 import { campaignsApi, type PerformanceOverview } from '../api/campaigns';
 import { apiClient } from '../api/client';
+import { runQuery, DEFAULT_TTL } from '../lib/queryCache';
+import { formatCurrency, formatNumber, formatPercent } from '../utils/formatters';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import styles from './Dashboard.module.css';
 
@@ -128,17 +130,21 @@ export function Dashboard() {
     loadCampaigns();
   }, []);
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = async (force = false) => {
     try {
       setIsLoading(true);
       setError(null);
-      const [data, overviewData] = await Promise.all([
-        campaignsApi.getAll(),
-        campaignsApi.getPerformanceOverview().catch(() => null),
-      ]);
+      // Served from the in-memory cache on revisits within the TTL; mutations pass force=true.
+      const [data, overviewData] = await runQuery(
+        'webapp:dashboard:data',
+        () =>
+          Promise.all([campaignsApi.getAll(), campaignsApi.getPerformanceOverview().catch(() => null)]),
+        DEFAULT_TTL,
+        force
+      );
       const mapped: Campaign[] = data.map((c) => {
-        const impressions = (c as unknown as { impressions?: number }).impressions ?? 0;
-        const clicks = (c as unknown as { clicks?: number }).clicks ?? 0;
+        const impressions = c.impressions ?? 0;
+        const clicks = c.clicks ?? 0;
         const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
         return {
           id: c.id,
@@ -281,7 +287,7 @@ export function Dashboard() {
       const succeeded = results.filter((r) => r.status === 'fulfilled').length;
       const failed = results.filter((r) => r.status === 'rejected').length;
       if (succeeded > 0) {
-        await loadCampaigns();
+        await loadCampaigns(true);
         showToast(
           failed > 0
             ? `${succeeded} paused, ${failed} failed (may not be pausable)`
@@ -308,7 +314,7 @@ export function Dashboard() {
       const succeeded = results.filter((r) => r.status === 'fulfilled').length;
       const failed = results.filter((r) => r.status === 'rejected').length;
       if (succeeded > 0) {
-        await loadCampaigns();
+        await loadCampaigns(true);
         showToast(
           failed > 0
             ? `${succeeded} activated, ${failed} failed (may not be activatable)`
@@ -339,7 +345,7 @@ export function Dashboard() {
       const succeeded = results.filter((r) => r.status === 'fulfilled').length;
       const failed = results.filter((r) => r.status === 'rejected').length;
       if (succeeded > 0) {
-        await loadCampaigns();
+        await loadCampaigns(true);
         showToast(
           failed > 0
             ? `${succeeded} deleted, ${failed} failed`
@@ -360,7 +366,7 @@ export function Dashboard() {
   const handleDuplicate = async (campaign: Campaign) => {
     try {
       await campaignsApi.duplicate(campaign.id);
-      await loadCampaigns();
+      await loadCampaigns(true);
       showToast('Campaign duplicated successfully');
     } catch {
       showToast('Failed to duplicate campaign', 'error');
@@ -460,7 +466,7 @@ export function Dashboard() {
             <div className={styles.overviewGrid}>
               <div className={styles.overviewCard}>
                 <span className={styles.overviewLabel}>Total Spend</span>
-                <span className={styles.overviewValue}>${overview.totalSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className={styles.overviewValue}>{formatCurrency(overview.totalSpend)}</span>
               </div>
               <div className={styles.overviewCard}>
                 <span className={styles.overviewLabel}>Total Campaigns</span>
@@ -468,15 +474,15 @@ export function Dashboard() {
               </div>
               <div className={styles.overviewCard}>
                 <span className={styles.overviewLabel}>Total Impressions</span>
-                <span className={styles.overviewValue}>{overview.totalImpressions.toLocaleString()}</span>
+                <span className={styles.overviewValue}>{formatNumber(overview.totalImpressions)}</span>
               </div>
               <div className={styles.overviewCard}>
                 <span className={styles.overviewLabel}>Total Clicks</span>
-                <span className={styles.overviewValue}>{overview.totalClicks.toLocaleString()}</span>
+                <span className={styles.overviewValue}>{formatNumber(overview.totalClicks)}</span>
               </div>
               <div className={styles.overviewCard}>
                 <span className={styles.overviewLabel}>Avg CTR</span>
-                <span className={styles.overviewValue}>{overview.averageCtr.toFixed(2)}%</span>
+                <span className={styles.overviewValue}>{formatPercent(overview.averageCtr)}</span>
               </div>
             </div>
           )}
@@ -705,7 +711,7 @@ export function Dashboard() {
           ) : error ? (
             <div className={styles.emptyState} style={{ textAlign: 'center', padding: '3rem' }}>
               <p>{error}</p>
-              <Button variant="outline" size="sm" onClick={loadCampaigns}>Retry</Button>
+              <Button variant="outline" size="sm" onClick={() => loadCampaigns(true)}>Retry</Button>
             </div>
           ) : (
             <>
@@ -808,10 +814,10 @@ export function Dashboard() {
                             </Badge>
                           </td>
                           <td>{campaign.adFormat}</td>
-                          <td>${campaign.budget.toFixed(1)}</td>
-                          <td>{campaign.impressions > 0 ? campaign.impressions.toLocaleString() : '-'}</td>
-                          <td>{campaign.clicks > 0 ? campaign.clicks.toLocaleString() : '-'}</td>
-                          <td>{campaign.impressions > 0 ? `${campaign.ctr.toFixed(2)}%` : '-'}</td>
+                          <td>{formatCurrency(campaign.budget)}</td>
+                          <td>{campaign.impressions > 0 ? formatNumber(campaign.impressions) : '-'}</td>
+                          <td>{campaign.clicks > 0 ? formatNumber(campaign.clicks) : '-'}</td>
+                          <td>{campaign.impressions > 0 ? formatPercent(campaign.ctr) : '-'}</td>
                           <td>
                             <div className={styles.actionBtns}>
                               <button

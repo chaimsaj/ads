@@ -152,3 +152,30 @@
 .collapsed .logoutBtn {
   justify-content: center;
 }
+
+/* Mobile: off-canvas drawer. Hidden by default, slides in when open; the desktop
+   collapse toggle is hidden in favour of the header hamburger. */
+@media (max-width: 768px) {
+  .sidebar,
+  .collapsed {
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+    transition: transform var(--transition-base);
+    z-index: 100;
+  }
+
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .toggleBtn {
+    display: none;
+  }
+
+  /* Always show full labels in the drawer, even if "collapsed" was toggled on desktop. */
+  .collapsed .navLink {
+    justify-content: flex-start;
+    padding: var(--space-6) var(--space-6);
+  }
+}

@@ -1,4 +1,12 @@
+import { formatCurrency } from './formatters';
+
 type ExportData = Record<string, unknown>[];
+
+const titleCase = (v: unknown): string =>
+  String(v)
+    .split(/[_\s]+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 
 interface ExportColumn {
   key: string;
@@ -46,10 +54,10 @@ export function exportUsersToCSV(users: ExportData): void {
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
-    { key: 'role', label: 'Role' },
-    { key: 'status', label: 'Status' },
+    { key: 'role', label: 'Role', format: titleCase },
+    { key: 'status', label: 'Status', format: titleCase },
     { key: 'totalCampaigns', label: 'Campaigns' },
-    { key: 'totalSpend', label: 'Total Spend', format: (v) => `$${Number(v).toLocaleString()}` },
+    { key: 'totalSpend', label: 'Total Spend', format: (v) => formatCurrency(Number(v)) },
     { key: 'createdAt', label: 'Joined', format: (v) => new Date(String(v)).toLocaleDateString() },
     { key: 'lastLogin', label: 'Last Login', format: (v) => v ? new Date(String(v)).toLocaleDateString() : 'Never' },
   ];
@@ -62,12 +70,12 @@ export function exportCampaignsToCSV(campaigns: ExportData): void {
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Name' },
     { key: 'userName', label: 'Owner' },
-    { key: 'status', label: 'Status' },
-    { key: 'adType', label: 'Ad Type' },
-    { key: 'adFormat', label: 'Ad Format' },
-    { key: 'boostType', label: 'Boost Type' },
-    { key: 'budget', label: 'Budget', format: (v) => `$${Number(v).toLocaleString()}` },
-    { key: 'spent', label: 'Spent', format: (v) => `$${Number(v).toLocaleString()}` },
+    { key: 'status', label: 'Status', format: titleCase },
+    { key: 'adType', label: 'Ad Type', format: titleCase },
+    { key: 'adFormat', label: 'Ad Format', format: titleCase },
+    { key: 'boostType', label: 'Boost Type', format: titleCase },
+    { key: 'budget', label: 'Budget', format: (v) => formatCurrency(Number(v)) },
+    { key: 'spent', label: 'Spent', format: (v) => formatCurrency(Number(v)) },
     { key: 'impressions', label: 'Impressions' },
     { key: 'clicks', label: 'Clicks' },
     { key: 'ctr', label: 'CTR', format: (v) => `${Number(v).toFixed(2)}%` },

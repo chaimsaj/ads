@@ -180,6 +180,23 @@
   background-color: var(--color-success);
 }
 
+/* Ad-delivery funnel states */
+.activityDot.served {
+  background-color: var(--color-neutral-400);
+}
+
+.activityDot.impressed {
+  background-color: var(--color-info);
+}
+
+.activityDot.clicked {
+  background-color: var(--color-primary-500);
+}
+
+.activityDot.converted {
+  background-color: var(--color-success);
+}
+
 .activityContent {
   flex: 1;
 }

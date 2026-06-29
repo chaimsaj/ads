@@ -237,18 +237,21 @@ export const stripePaymentsApi = {
   },
 
   /**
-   * Get a specific invoice.
-   * Note: the API has no single-invoice endpoint, so this lists invoices and
-   * selects the matching one client-side. Replace with a dedicated `get`
-   * action once the backend exposes one.
+   * Get a specific invoice. Prefers the dedicated backend `get` action; if that
+   * endpoint is unavailable (older backend / disabled), it falls back to listing
+   * invoices and selecting the matching one client-side.
    */
   getInvoice: async (invoiceId: string): Promise<Invoice> => {
-    const { invoices } = await stripePaymentsApi.getInvoices();
-    const invoice = invoices.find((i) => i.id === invoiceId);
-    if (!invoice) {
-      throw new Error('Invoice not found');
+    try {
+      return await apiClient.post<Invoice>('/stripe/invoices/get', { id: invoiceId });
+    } catch {
+      const { invoices } = await stripePaymentsApi.getInvoices();
+      const invoice = invoices.find((i) => i.id === invoiceId);
+      if (!invoice) {
+        throw new Error('Invoice not found');
+      }
+      return invoice;
     }
-    return invoice;
   },
 
   /**

@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { usersApi } from '../api/users';
 import { useToast } from '../context/ToastContext';
 import { isApiError } from '../api/client';
 import { useDebounce } from './useDebounce';
 import { usePagination } from './usePagination';
+import { useQuery, invalidate } from '../lib/queryCache';
 import type { User, PaginatedResponse } from '../types';
 
 interface UseUsersFilters {
@@ -16,49 +17,36 @@ export function useUsers(filters: UseUsersFilters = {}) {
   const pagination = usePagination({ initialLimit: 10 });
   const debouncedSearch = useDebounce(pagination.search, 300);
 
-  const [data, setData] = useState<PaginatedResponse<User> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const params = {
+    page: pagination.page,
+    limit: pagination.limit,
+    search: debouncedSearch,
+    sortBy: pagination.sortBy,
+    sortOrder: pagination.sortOrder,
+    ...filters,
+  };
+  const key = `users:list:${JSON.stringify(params)}`;
 
-  const fetchUsers = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await usersApi.getAll({
-        page: pagination.page,
-        limit: pagination.limit,
-        search: debouncedSearch,
-        sortBy: pagination.sortBy,
-        sortOrder: pagination.sortOrder,
-        ...filters,
-      });
-      setData(result);
-    } catch (err) {
-      const message = isApiError(err) ? err.message : 'Failed to fetch users';
-      setError(message);
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pagination.page, pagination.limit, debouncedSearch, pagination.sortBy, pagination.sortOrder, filters, toast]);
+  const { data, isLoading, error, refetch } = useQuery<PaginatedResponse<User>>(key, () =>
+    usersApi.getAll(params)
+  );
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (error) toast.error(error);
+  }, [error, toast]);
 
   const updateUserStatus = useCallback(
     async (id: string, status: User['status']) => {
       try {
         await usersApi.updateStatus(id, status);
         toast.success('User status updated');
-        await fetchUsers();
+        invalidate('users:');
+        await refetch();
       } catch (err) {
-        const message = isApiError(err) ? err.message : 'Failed to update user status';
-        toast.error(message);
+        toast.error(isApiError(err) ? err.message : 'Failed to update user status');
       }
     },
-    [fetchUsers, toast]
+    [refetch, toast]
   );
 
   const deleteUser = useCallback(
@@ -66,13 +54,14 @@ export function useUsers(filters: UseUsersFilters = {}) {
       try {
         await usersApi.delete(id);
         toast.success('User deleted');
-        await fetchUsers();
+        invalidate('users:');
+        invalidate('dashboard:');
+        await refetch();
       } catch (err) {
-        const message = isApiError(err) ? err.message : 'Failed to delete user';
-        toast.error(message);
+        toast.error(isApiError(err) ? err.message : 'Failed to delete user');
       }
     },
-    [fetchUsers, toast]
+    [refetch, toast]
   );
 
   const bulkAction = useCallback(
@@ -82,15 +71,16 @@ export function useUsers(filters: UseUsersFilters = {}) {
         toast.success(
           `Bulk ${action} completed: ${result.success.length} succeeded, ${result.failed.length} failed`
         );
-        await fetchUsers();
+        invalidate('users:');
+        invalidate('dashboard:');
+        await refetch();
         return result;
       } catch (err) {
-        const message = isApiError(err) ? err.message : 'Bulk action failed';
-        toast.error(message);
+        toast.error(isApiError(err) ? err.message : 'Bulk action failed');
         throw err;
       }
     },
-    [fetchUsers, toast]
+    [refetch, toast]
   );
 
   return useMemo(
@@ -103,11 +93,11 @@ export function useUsers(filters: UseUsersFilters = {}) {
       },
       isLoading,
       error,
-      refetch: fetchUsers,
+      refetch,
       updateUserStatus,
       deleteUser,
       bulkAction,
     }),
-    [data, pagination, isLoading, error, fetchUsers, updateUserStatus, deleteUser, bulkAction]
+    [data, pagination, isLoading, error, refetch, updateUserStatus, deleteUser, bulkAction]
   );
 }
