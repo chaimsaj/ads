@@ -25,7 +25,7 @@ import { Header, Footer } from '../components/layout';
 import { Button, Badge, Input } from '../components/ui';
 import { campaignsApi, type PerformanceOverview } from '../api/campaigns';
 import { apiClient } from '../api/client';
-import { runQuery, DEFAULT_TTL } from '../lib/queryCache';
+import { runQuery, invalidate, DEFAULT_TTL } from '../lib/queryCache';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/formatters';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import styles from './Dashboard.module.css';
@@ -270,6 +270,8 @@ export function Dashboard() {
             : c
         )
       );
+      // Keep the cached dashboard snapshot in sync so a revisit within the TTL shows the new status.
+      invalidate('webapp:dashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update campaign status';
       showToast(message, 'error');
