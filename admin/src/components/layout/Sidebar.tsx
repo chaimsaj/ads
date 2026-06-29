@@ -5,6 +5,7 @@ import {
   Megaphone,
   CreditCard,
   Mail,
+  ScrollText,
   Settings,
   LogOut,
   ChevronLeft,
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/campaigns', icon: Megaphone, label: 'Campaigns' },
   { path: '/payments', icon: CreditCard, label: 'Payments' },
   { path: '/emails', icon: Mail, label: 'Emails' },
+  { path: '/audit', icon: ScrollText, label: 'Audit Log' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
