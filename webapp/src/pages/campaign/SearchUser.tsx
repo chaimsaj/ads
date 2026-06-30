@@ -38,39 +38,20 @@ export function SearchUser() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // HARDCODED test data — remove when real API is ready
-  const HARDCODED_USERS: UserSearchResult[] = [
-    { id: '000000000000000000000999', name: 'Sara', company: 'Myngly Inc', avatar: null },
-    { id: '000000000000000000000998', name: 'Chaim', company: 'Myngly Ads', avatar: null },
-    { id: '000000000000000000000997', name: 'Mani', company: 'Myngly Dev', avatar: null },
-  ];
-
   const searchUsers = useCallback(async (q: string) => {
     if (q.length < 2) {
       setResults([]);
       return;
     }
     setIsSearching(true);
-
-    // MOCK: Filter hardcoded users by query
-    const hardcoded = HARDCODED_USERS.filter(u =>
-      u.name.toLowerCase().includes(q.toLowerCase())
-    );
-
-    // Try to fetch real users from API, but don't fail if unavailable
-    let apiResults: UserSearchResult[] = [];
     try {
-      apiResults = await usersApi.search(q);
+      const apiResults = await usersApi.search(q);
+      setResults(apiResults);
     } catch {
-      // API unavailable — use hardcoded only
+      setResults([]);
+    } finally {
+      setIsSearching(false);
     }
-
-    const merged = [
-      ...hardcoded,
-      ...apiResults.filter(d => !HARDCODED_USERS.some(h => h.id === d.id)),
-    ];
-    setResults(merged);
-    setIsSearching(false);
   }, []);
 
   useEffect(() => {

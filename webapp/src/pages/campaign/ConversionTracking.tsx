@@ -48,9 +48,10 @@ export function ConversionTracking() {
       setIsLoadingCampaigns(true);
       setLoadError(null);
       const data = await campaignsApi.getAll();
-      setCampaigns(data);
-      if (!selectedCampaignId && data.length > 0) {
-        setSelectedCampaignId(data[0].id);
+      const eligible = data.filter((c) => c.status === 'active' || c.status === 'scheduled');
+      setCampaigns(eligible);
+      if (!selectedCampaignId && eligible.length > 0) {
+        setSelectedCampaignId(eligible[0].id);
       }
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : 'Failed to load campaigns');

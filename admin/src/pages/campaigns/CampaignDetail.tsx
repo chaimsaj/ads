@@ -19,6 +19,8 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
   const toast = useToast();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectForm, setShowRejectForm] = useState(false);
 
   const fetchCampaign = useCallback(async () => {
     if (!campaignId) return;
@@ -57,8 +59,10 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
   const handleReject = async () => {
     if (!campaignId) return;
     try {
-      await campaignsApi.reject(campaignId);
+      await campaignsApi.reject(campaignId, rejectReason.trim() || undefined);
       toast.success('Campaign rejected');
+      setShowRejectForm(false);
+      setRejectReason('');
       onUpdate();
       fetchCampaign();
     } catch (err) {
@@ -266,11 +270,29 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
       ) : campaign ? (
         <Tabs tabs={tabs} defaultTab="overview" />
       ) : null}
+      {showRejectForm && campaign?.status === 'review' && (
+        <div style={{ padding: '0 var(--spacing-lg) var(--spacing-md)' }}>
+          <textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Rejection reason (optional)"
+            rows={3}
+            style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', padding: '8px 10px', fontSize: 13, borderRadius: 6, border: '1px solid var(--border-color, #d1d5db)', fontFamily: 'inherit' }}
+          />
+        </div>
+      )}
       <ModalFooter>
         <Button variant="outline" onClick={onClose}>Close</Button>
         {campaign?.status === 'review' && (
           <>
-            <Button variant="danger" onClick={handleReject}>Reject</Button>
+            {showRejectForm ? (
+              <>
+                <Button variant="outline" onClick={() => { setShowRejectForm(false); setRejectReason(''); }}>Cancel</Button>
+                <Button variant="danger" onClick={handleReject}>Confirm Reject</Button>
+              </>
+            ) : (
+              <Button variant="danger" onClick={() => setShowRejectForm(true)}>Reject</Button>
+            )}
             <Button onClick={handleApprove}>Approve</Button>
           </>
         )}

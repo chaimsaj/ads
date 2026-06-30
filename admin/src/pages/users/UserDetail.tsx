@@ -21,7 +21,7 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', role: '' as User['role'] });
 
   const fetchUser = useCallback(async () => {
     if (!userId) return;
@@ -29,7 +29,7 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
     try {
       const data = await usersApi.getById(userId);
       setUser(data);
-      setFormData({ name: data.name, email: data.email });
+      setFormData({ name: data.name, email: data.email, phone: '', company: '', role: data.role });
     } catch (err) {
       const message = isApiError(err) ? err.message : 'Failed to load user';
       toast.error(message);
@@ -86,6 +86,28 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
+                  <Input
+                    label="Phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                  <Input
+                    label="Company"
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  />
+                  <div>
+                    <label style={{ display: 'block', marginBottom: 4, fontSize: 13, fontWeight: 500 }}>Role</label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
+                      style={{ width: '100%', padding: '8px 10px', fontSize: 13, borderRadius: 6, border: '1px solid var(--border-color, #d1d5db)', fontFamily: 'inherit' }}
+                    >
+                      <option value="advertiser">Advertiser</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
                 </div>
               ) : (
                 <>

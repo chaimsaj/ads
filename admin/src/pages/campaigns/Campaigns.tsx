@@ -12,7 +12,7 @@ import {
   X,
   Eye,
 } from 'lucide-react';
-import { Card, Button, Table, StatusBadge, Badge, Pagination, ConfirmDialog } from '../../components/ui';
+import { Card, Button, Table, StatusBadge, Badge, Pagination, ConfirmDialog, Modal, ModalFooter } from '../../components/ui';
 import { useCampaigns } from '../../hooks/useCampaigns';
 import { CampaignDetail } from './CampaignDetail';
 import { exportCampaignsToCSV } from '../../utils/export';
@@ -33,6 +33,7 @@ export function Campaigns() {
     ids: string[];
   }>({ isOpen: false, action: 'delete', ids: [] });
   const [detailCampaignId, setDetailCampaignId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const filters = useMemo(() => ({
     status: statusFilter,
@@ -85,12 +86,13 @@ export function Campaigns() {
         await bulkAction(action, ids);
       }
     } else if (action === 'reject') {
-      await rejectCampaign(ids[0]);
+      await rejectCampaign(ids[0], rejectReason.trim() || undefined);
     } else if (action === 'activate' || action === 'pause') {
       await bulkAction(action, ids);
     }
     setSelectedIds(new Set());
     setConfirmDialog({ isOpen: false, action: 'delete', ids: [] });
+    setRejectReason('');
   };
 
   const columns: TableColumn<Campaign>[] = [
@@ -354,15 +356,39 @@ export function Campaigns() {
         )}
       </Card>
 
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={() => setConfirmDialog({ isOpen: false, action: 'delete', ids: [] })}
-        onConfirm={handleConfirmAction}
-        title={confirmDialog.action === 'delete' ? 'Delete Campaign(s)' : `${confirmDialog.action} Campaign(s)`}
-        message={`Are you sure you want to ${confirmDialog.action} ${confirmDialog.ids.length} campaign(s)?`}
-        confirmText={confirmDialog.action === 'delete' ? 'Delete' : confirmDialog.action === 'reject' ? 'Reject' : confirmDialog.action}
-        variant={confirmDialog.action === 'delete' || confirmDialog.action === 'reject' ? 'danger' : 'warning'}
-      />
+      {confirmDialog.action === 'reject' ? (
+        <Modal
+          isOpen={confirmDialog.isOpen}
+          onClose={() => { setConfirmDialog({ isOpen: false, action: 'delete', ids: [] }); setRejectReason(''); }}
+          title="Reject Campaign"
+          size="sm"
+        >
+          <p style={{ margin: '0 0 12px 0', fontSize: 14 }}>
+            Are you sure you want to reject this campaign? Optionally provide a reason for the advertiser.
+          </p>
+          <textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Rejection reason (optional)"
+            rows={3}
+            style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', padding: '8px 10px', fontSize: 13, borderRadius: 6, border: '1px solid var(--border-color, #d1d5db)', fontFamily: 'inherit' }}
+          />
+          <ModalFooter>
+            <Button variant="outline" onClick={() => { setConfirmDialog({ isOpen: false, action: 'delete', ids: [] }); setRejectReason(''); }}>Cancel</Button>
+            <Button variant="danger" onClick={handleConfirmAction}>Reject</Button>
+          </ModalFooter>
+        </Modal>
+      ) : (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog({ isOpen: false, action: 'delete', ids: [] })}
+          onConfirm={handleConfirmAction}
+          title={confirmDialog.action === 'delete' ? 'Delete Campaign(s)' : `${confirmDialog.action} Campaign(s)`}
+          message={`Are you sure you want to ${confirmDialog.action} ${confirmDialog.ids.length} campaign(s)?`}
+          confirmText={confirmDialog.action === 'delete' ? 'Delete' : confirmDialog.action}
+          variant={confirmDialog.action === 'delete' ? 'danger' : 'warning'}
+        />
+      )}
 
       <CampaignDetail
         campaignId={detailCampaignId}

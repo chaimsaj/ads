@@ -60,11 +60,7 @@ export function Settings() {
   const handleDangerAction = async () => {
     const { action } = dangerConfirm;
     try {
-      if (action === 'clear-cache') {
-        toast.success('Cache cleared successfully');
-      } else if (action === 'reset-stats') {
-        toast.success('Statistics have been reset');
-      } else if (action === 'purge-data') {
+      if (action === 'purge-data') {
         toast.warning('Data purge is not available in this environment');
       }
     } catch (err) {
@@ -327,20 +323,6 @@ export function Settings() {
                     <h4>Danger Zone</h4>
                     <p>These actions are irreversible. Please proceed with caution.</p>
                     <div className={styles.dangerActions}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDangerConfirm({ isOpen: true, action: 'clear-cache', label: 'Clear Cache' })}
-                      >
-                        Clear Cache
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDangerConfirm({ isOpen: true, action: 'reset-stats', label: 'Reset Statistics' })}
-                      >
-                        Reset Statistics
-                      </Button>
                       <Button
                         variant="danger"
                         size="sm"

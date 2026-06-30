@@ -204,6 +204,13 @@ export function Dashboard() {
       result = result.filter((c) => c.adFormat === formatFilter);
     }
 
+    // Apply date-range filter
+    if (dateRange.start && dateRange.end) {
+      result = result.filter(
+        (c) => c.startDate <= dateRange.end && c.endDate >= dateRange.start
+      );
+    }
+
     // Apply sorting
     result.sort((a, b) => {
       let aVal: string | number | boolean = a[sortField];
@@ -220,7 +227,7 @@ export function Dashboard() {
     });
 
     return result;
-  }, [campaigns, searchQuery, statusFilter, formatFilter, sortField, sortDirection]);
+  }, [campaigns, searchQuery, statusFilter, formatFilter, dateRange, sortField, sortDirection]);
 
   // Paginated campaigns
   const paginatedCampaigns = useMemo(() => {

@@ -55,13 +55,6 @@ export function SearchEvent() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // HARDCODED test data — remove when real API is ready
-  const HARDCODED_EVENTS: EventSearchResult[] = [
-    { id: '000000000000000000000999', code: 1001, name: 'Event 1 Myngly', address: 'Houston, TX', date: '2026-07-15T18:00:00.000Z', bannerImage: null },
-    { id: '000000000000000000000998', code: 1002, name: 'Event 2 Myngly', address: 'Austin, TX', date: '2026-08-20T19:00:00.000Z', bannerImage: null },
-    { id: '000000000000000000000997', code: 1003, name: 'Event 3 Myngly', address: 'Dallas, TX', date: '2026-09-10T17:30:00.000Z', bannerImage: null },
-  ];
-
   const searchEvents = useCallback(async (q: string) => {
     if (q.length < 2) {
       setResults([]);
@@ -70,14 +63,9 @@ export function SearchEvent() {
     setIsSearching(true);
     try {
       const data = await eventsApi.search(q);
-      const merged = [...HARDCODED_EVENTS.filter(e =>
-        e.name.toLowerCase().includes(q.toLowerCase()) || String(e.code).includes(q)
-      ), ...data.filter(d => !HARDCODED_EVENTS.some(h => h.id === d.id))];
-      setResults(merged);
+      setResults(data);
     } catch {
-      setResults(HARDCODED_EVENTS.filter(e =>
-        e.name.toLowerCase().includes(q.toLowerCase()) || String(e.code).includes(q)
-      ));
+      setResults([]);
     } finally {
       setIsSearching(false);
     }
