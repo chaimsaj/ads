@@ -30,7 +30,8 @@ export function SignUp() {
         email: formData.email,
         password: formData.password,
       });
-      navigate('/auth/verify-email');
+      localStorage.setItem('verifyEmail', formData.email);
+      navigate(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       if (isApiError(err)) {
         setError(err.message);

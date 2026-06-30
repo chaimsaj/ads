@@ -55,4 +55,13 @@ export const authApi = {
     const raw = await apiClient.post<BackendUserProfileDTO>('/user/profile');
     return mapUserFromBackend(raw);
   },
+
+  async verifyEmail(email: string, code: string): Promise<User> {
+    const raw = await apiClient.post<BackendUserProfileDTO>('/auth/verify-email', { email, code });
+    return mapUserFromBackend(raw);
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await apiClient.post('/auth/reset-password', { token, password });
+  },
 };

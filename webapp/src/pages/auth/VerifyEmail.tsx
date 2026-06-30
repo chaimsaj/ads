@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthLayout } from './AuthLayout';
 import { Button } from '../../components/ui';
-import { sendGridEmailsApi } from '../../api';
+import { sendGridEmailsApi, authApi, isApiError } from '../../api';
+import { useAuth } from '../../context/AuthContext';
 import styles from './Auth.module.css';
 
 export function VerifyEmail() {
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -72,15 +74,21 @@ export function VerifyEmail() {
       return;
     }
 
+    if (!email || email === 'your email') {
+      setError('We could not determine which email to verify. Please sign in again.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      // This would call your verify endpoint
-      // await authApi.verifyEmail({ email, code: fullCode });
+      await authApi.verifyEmail(email, fullCode);
+      localStorage.removeItem('verifyEmail');
+      await refreshProfile();
       navigate('/dashboard');
     } catch (err) {
-      setError('Invalid or expired code. Please try again.');
+      setError(isApiError(err) ? err.message : 'Invalid or expired code. Please try again.');
     } finally {
       setLoading(false);
     }

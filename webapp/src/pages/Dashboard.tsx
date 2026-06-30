@@ -22,6 +22,7 @@ import {
   Radio,
 } from 'lucide-react';
 import { Header, Footer } from '../components/layout';
+import { EmailVerificationBanner } from '../components/EmailVerificationBanner';
 import { Button, Badge, Input } from '../components/ui';
 import { campaignsApi, type PerformanceOverview } from '../api/campaigns';
 import { apiClient } from '../api/client';
@@ -455,6 +456,8 @@ export function Dashboard() {
 
       <main className={styles.main}>
         <div className={styles.container}>
+          <EmailVerificationBanner />
+
           {/* Toast Notification */}
           {toast && (
             <div className={`${styles.toast} ${styles[toast.type]}`}>
