@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -23,6 +23,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Ban,
+  Download,
 } from 'lucide-react'
 
 type TabId = 'overview' | 'transactions' | 'disputes'
@@ -31,7 +32,6 @@ export function StripePayments() {
   const toast = useToast()
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [loading, setLoading] = useState(true)
-  const fetchedRef = useRef(false)
 
   // Data states
   const [balance, setBalance] = useState<StripeBalance | null>(null)
@@ -42,10 +42,14 @@ export function StripePayments() {
   // UI states
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
-  const [dateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    endDate: new Date().toISOString(),
-  })
+  const [rangeDays, setRangeDays] = useState(30)
+  const dateRange = useMemo(
+    () => ({
+      startDate: new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000).toISOString(),
+      endDate: new Date().toISOString(),
+    }),
+    [rangeDays],
+  )
 
   // Modal states
   const [selectedTransaction, setSelectedTransaction] = useState<StripeTransaction | null>(null)
@@ -106,8 +110,6 @@ export function StripePayments() {
   }, [toast])
 
   useEffect(() => {
-    if (fetchedRef.current) return
-    fetchedRef.current = true
     fetchData()
   }, [fetchData])
 
@@ -148,6 +150,39 @@ export function StripePayments() {
     }
   }
 
+  const filteredTransactions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return transactions
+    return transactions.filter((tx) =>
+      [tx.stripePaymentIntentId, tx.id, tx.userId, tx.campaignId, tx.type, tx.description]
+        .some((field) => (field ?? '').toLowerCase().includes(q)),
+    )
+  }, [transactions, searchQuery])
+
+  const handleExportCsv = () => {
+    const header = ['Payment Intent', 'User', 'Campaign', 'Type', 'Status', 'Amount', 'Currency', 'Date']
+    const rows = filteredTransactions.map((tx) => [
+      tx.stripePaymentIntentId ?? tx.id ?? '',
+      tx.userId ?? '',
+      tx.campaignId ?? '',
+      tx.type ?? '',
+      tx.status ?? '',
+      ((tx.amount ?? 0) / 100).toFixed(2),
+      (tx.currency ?? 'usd').toUpperCase(),
+      tx.createdAt ? new Date(tx.createdAt).toISOString() : '',
+    ])
+    const csv = [header, ...rows]
+      .map((row) => row.map((cell) => (/[",\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell)).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
       completed: 'success',
@@ -181,7 +216,7 @@ export function StripePayments() {
           <h1>Payments</h1>
           <p>Manage Stripe payments and refunds</p>
         </div>
-        <Button onClick={() => { fetchedRef.current = false; fetchData(); }} variant="outline" leftIcon={<RefreshCw size={16} />}>
+        <Button onClick={() => fetchData()} variant="outline" leftIcon={<RefreshCw size={16} />}>
           Refresh
         </Button>
       </div>
@@ -298,7 +333,7 @@ export function StripePayments() {
         <div className={styles.transactions}>
           <div className={styles.filters}>
             <Input
-              placeholder="Search transactions..."
+              placeholder="Search by intent, user, campaign, type…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               leftIcon={<Search size={16} />}
@@ -314,6 +349,23 @@ export function StripePayments() {
               <option value="failed">Failed</option>
               <option value="refunded">Refunded</option>
             </select>
+            <select
+              value={rangeDays}
+              onChange={(e) => setRangeDays(Number(e.target.value))}
+              className={styles.select}
+            >
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+            </select>
+            <Button
+              variant="outline"
+              leftIcon={<Download size={16} />}
+              onClick={handleExportCsv}
+              disabled={filteredTransactions.length === 0}
+            >
+              Export CSV
+            </Button>
           </div>
 
           <div className={styles.tableWrapper}>
@@ -321,6 +373,7 @@ export function StripePayments() {
               <thead>
                 <tr>
                   <th>ID</th>
+                  <th>User</th>
                   <th>Amount</th>
                   <th>Status</th>
                   <th>Type</th>
@@ -330,19 +383,22 @@ export function StripePayments() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.length === 0 ? (
+                {filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-tertiary)' }}>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-tertiary)' }}>
                       No transactions found
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((tx) => (
+                  filteredTransactions.map((tx) => (
                     <tr key={tx.id}>
                       <td>
                         <code className={styles.txId}>
                           {(tx.stripePaymentIntentId ?? tx.id ?? '').slice(0, 16)}...
                         </code>
+                      </td>
+                      <td>
+                        {tx.userId ? <code className={styles.txId}>{tx.userId.slice(0, 12)}</code> : '-'}
                       </td>
                       <td>{formatCurrency(tx.amount ?? 0, tx.currency)}</td>
                       <td>{getStatusBadge(tx.status ?? 'pending')}</td>
