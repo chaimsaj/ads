@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Plus, Download, Trash2, Ban, CheckCircle, MoreVertical, Search, Filter, X, Eye } from 'lucide-react';
 import { Card, Button, Table, StatusBadge, Badge, Pagination, ConfirmDialog } from '../../components/ui';
 import { useUsers } from '../../hooks/useUsers';
+import { usersApi } from '../../api/users';
 import { UserDetail } from './UserDetail';
 import { exportUsersToCSV } from '../../utils/export';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -47,6 +48,26 @@ export function Users() {
   };
 
   const hasActiveFilters = pagination.search || statusFilter || roleFilter;
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Export the entire filtered result set (all pages), not just the page in view.
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const all: User[] = [];
+      for (let page = 1; page <= 100; page++) {
+        const res = await usersApi.getAll({ ...filters, search: pagination.search, page, limit: 200 });
+        all.push(...res.data);
+        if (res.data.length === 0 || all.length >= res.pagination.total) break;
+      }
+      exportUsersToCSV(all);
+      toast.success(`Exported ${all.length} users`);
+    } catch {
+      toast.error('Failed to export users');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleBulkAction = async (action: 'activate' | 'suspend' | 'delete') => {
     const ids = Array.from(selectedIds);
@@ -154,12 +175,10 @@ export function Users() {
           <Button
             variant="outline"
             leftIcon={<Download size={16} />}
-            onClick={() => {
-              exportUsersToCSV(users);
-              toast.success('Users exported successfully');
-            }}
+            onClick={handleExport}
+            disabled={isExporting}
           >
-            Export
+            {isExporting ? 'Exporting…' : 'Export'}
           </Button>
           {canWrite && (
             <Button

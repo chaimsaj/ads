@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Card, Button, Table, StatusBadge, Badge, Pagination, ConfirmDialog, Modal, ModalFooter } from '../../components/ui';
 import { useCampaigns } from '../../hooks/useCampaigns';
+import { campaignsApi } from '../../api/campaigns';
 import { CampaignDetail } from './CampaignDetail';
 import { exportCampaignsToCSV } from '../../utils/export';
 import { formatCurrency, formatDate, formatPercent, titleCase } from '../../utils/formatters';
@@ -64,6 +65,26 @@ export function Campaigns() {
 
   const hasActiveFilters = pagination.search || statusFilter || formatFilter;
   const pendingReviewCount = campaigns.filter((c) => c.status === 'review').length;
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Export the entire filtered result set (all pages), not just the page in view.
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const all: Campaign[] = [];
+      for (let page = 1; page <= 100; page++) {
+        const res = await campaignsApi.getAll({ ...filters, search: pagination.search, page, limit: 200 });
+        all.push(...res.data);
+        if (res.data.length === 0 || all.length >= res.pagination.total) break;
+      }
+      exportCampaignsToCSV(all);
+      toast.success(`Exported ${all.length} campaigns`);
+    } catch {
+      toast.error('Failed to export campaigns');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleBulkAction = async (action: 'activate' | 'pause' | 'delete') => {
     const ids = Array.from(selectedIds);
@@ -229,12 +250,10 @@ export function Campaigns() {
           <Button
             variant="outline"
             leftIcon={<Download size={16} />}
-            onClick={() => {
-              exportCampaignsToCSV(campaigns);
-              toast.success('Campaigns exported successfully');
-            }}
+            onClick={handleExport}
+            disabled={isExporting}
           >
-            Export
+            {isExporting ? 'Exporting…' : 'Export'}
           </Button>
         </div>
       </div>
