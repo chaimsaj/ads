@@ -6,11 +6,15 @@ import {
   type BulkEmailRequest,
 } from '../../api/SendGrid_emails';
 import { Card } from '../../components/ui/Card';
+import { useAuth } from '../../context/AuthContext';
 import styles from './SendGrid_Emails.module.css';
 
 type TabType = 'overview' | 'logs' | 'bulk';
 
 export function SendGridEmails() {
+  const { user } = useAuth();
+  // Sending bulk email is a governance/comms action (backend: AdminGovernance = super-admin/admin).
+  const canSendEmail = user?.role === 'super_admin' || user?.role === 'admin';
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +66,10 @@ export function SendGridEmails() {
 
   const handleSendBulkEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSendEmail) {
+      setError('You do not have permission to send bulk email.');
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -105,7 +113,7 @@ export function SendGridEmails() {
   const tabItems: { id: TabType; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'logs', label: 'Logs' },
-    { id: 'bulk', label: 'Bulk' },
+    ...(canSendEmail ? [{ id: 'bulk' as const, label: 'Bulk' }] : []),
   ];
 
   return (
