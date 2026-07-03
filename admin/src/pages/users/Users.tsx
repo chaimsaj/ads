@@ -262,9 +262,9 @@ export function Users() {
                 className={styles.filterSelect}
               >
                 <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
+                <option value="active">ACTIVE</option>
+                <option value="inactive">INACTIVE</option>
+                <option value="suspended">SUSPENDED</option>
               </select>
             </div>
 
@@ -276,9 +276,9 @@ export function Users() {
                 className={styles.filterSelect}
               >
                 <option value="">All Roles</option>
-                <option value="admin">Admin</option>
-                <option value="user">User</option>
-                <option value="advertiser">Advertiser</option>
+                <option value="admin">ADMIN</option>
+                <option value="user">USER</option>
+                <option value="advertiser">ADVERTISER</option>
               </select>
             </div>
 

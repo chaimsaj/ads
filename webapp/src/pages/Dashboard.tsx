@@ -647,7 +647,7 @@ export function Dashboard() {
                           setCurrentPage(1);
                         }}
                       >
-                        {option === 'all' ? 'All Statuses' : option.charAt(0).toUpperCase() + option.slice(1)}
+                        {option === 'all' ? 'All Statuses' : option.toUpperCase()}
                         {statusFilter === option && <Check size={14} />}
                       </button>
                     ))}
@@ -821,8 +821,7 @@ export function Dashboard() {
                           </td>
                           <td>
                             <Badge variant={campaign.status}>
-                              {campaign.status.charAt(0).toUpperCase() +
-                                campaign.status.slice(1)}
+                              {campaign.status.toUpperCase()}
                             </Badge>
                           </td>
                           <td>{campaign.adFormat}</td>
@@ -944,7 +943,7 @@ export function Dashboard() {
                     <div className={styles.modalItemInfo}>
                       <span className={styles.modalItemName}>{campaign.name}</span>
                       <span className={styles.modalItemMeta}>
-                        {campaign.adFormat} &middot; {campaign.status} &middot; ${campaign.budget}
+                        {campaign.adFormat} &middot; {campaign.status.toUpperCase()} &middot; ${campaign.budget}
                       </span>
                     </div>
                     {reuseLoading === campaign.id ? (

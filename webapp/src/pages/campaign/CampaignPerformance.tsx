@@ -226,7 +226,7 @@ export function CampaignPerformance() {
             <div className={styles.campaignMeta}>
               <span className={styles.metaItem}>
                 <Badge variant={summary.status.toLowerCase() as 'active' | 'paused' | 'completed'}>
-                  {summary.status.charAt(0).toUpperCase() + summary.status.slice(1).toLowerCase()}
+                  {summary.status.toUpperCase()}
                 </Badge>
               </span>
               <span className={styles.metaItem}>

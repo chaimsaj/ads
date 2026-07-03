@@ -47,11 +47,8 @@ export const StatusBadge = ({ status }: { status: string }) => {
     advertiser: 'info',
   };
 
-  // Accept wire values (e.g. "super_admin") and render a human-readable, title-cased label.
-  const label = status
-    .split(/[_\s]+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // Accept wire values (e.g. "super_admin") and render an UPPERCASE label (unified casing).
+  const label = status.replace(/[_\s]+/g, ' ').toUpperCase();
 
   return (
     <Badge variant={variantMap[status] || 'default'} dot>

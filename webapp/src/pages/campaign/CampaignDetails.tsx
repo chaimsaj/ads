@@ -152,7 +152,7 @@ export function CampaignDetails() {
                     <span className={styles.fieldValue}>{campaign.createdAt}</span>
                   </div>
                   <div className={styles.field}>
-                    <Badge variant={campaign.status as 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'draft' | 'rejected' | 'default'}>{campaign.status}</Badge>
+                    <Badge variant={campaign.status as 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'draft' | 'rejected' | 'default'}>{campaign.status.toUpperCase()}</Badge>
                   </div>
                 </div>
               </section>

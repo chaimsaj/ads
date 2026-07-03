@@ -329,12 +329,12 @@ export function Campaigns() {
                 className={styles.filterSelect}
               >
                 <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="paused">Paused</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="completed">Completed</option>
-                <option value="review">Pending Review</option>
-                <option value="rejected">Rejected</option>
+                <option value="active">ACTIVE</option>
+                <option value="paused">PAUSED</option>
+                <option value="scheduled">SCHEDULED</option>
+                <option value="completed">COMPLETED</option>
+                <option value="review">PENDING REVIEW</option>
+                <option value="rejected">REJECTED</option>
               </select>
             </div>
 
@@ -346,9 +346,9 @@ export function Campaigns() {
                 className={styles.filterSelect}
               >
                 <option value="">All Formats</option>
-                <option value="banner">Banner</option>
-                <option value="interstitial">Interstitial</option>
-                <option value="push">Push</option>
+                <option value="BANNER">BANNER</option>
+                <option value="INTERSTITIAL">INTERSTITIAL</option>
+                <option value="PUSH">PUSH</option>
               </select>
             </div>
 

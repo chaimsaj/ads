@@ -47,7 +47,7 @@ function summarize(campaigns: CampaignSummary[], overview: PerformanceOverview |
   };
 }
 
-const statusLabel = (status: string): string => status.charAt(0).toUpperCase() + status.slice(1);
+const statusLabel = (status: string): string => status.toUpperCase();
 
 export function Reports() {
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
