@@ -163,3 +163,20 @@
   color: var(--color-text-secondary);
   padding: var(--spacing-xl);
 }
+
+/* Daily performance chart */
+.dailySection {
+  margin-top: var(--space-12);
+}
+
+.dailyTitle {
+  margin: 0 0 var(--space-8) 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.dailyEmpty {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
