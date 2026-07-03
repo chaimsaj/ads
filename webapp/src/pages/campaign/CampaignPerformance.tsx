@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Loader, Calendar, MapPin, Image, ChevronRight, Radio } from 'lucide-react';
+import { Loader, Calendar, MapPin, Image, ChevronRight, Radio, TrendingUp, TrendingDown } from 'lucide-react';
 import { Header, Footer } from '../../components/layout';
 import { Button, Badge } from '../../components/ui';
+import { TimeSeriesChart, type ChartSeries } from '../../components/charts';
 import {
   campaignsApi,
   type PerformanceSummary,
   type DailyPerformance,
+  type PerformanceComparison,
 } from '../../api/campaigns';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { formatCurrency, formatNumber, formatPercent, formatDate as formatDateValue, formatDateTime } from '../../utils/formatters';
@@ -17,6 +19,28 @@ type DayRange = 7 | 14 | 30;
 
 function formatDate(iso: string | null): string {
   return iso ? formatDateValue(iso) : '-';
+}
+
+const CHART_COLORS = {
+  impressions: 'var(--color-primary-700)',
+  clicks: 'var(--color-secondary-400)',
+  spend: '#e0794b',
+  revenue: '#2e9e6b',
+};
+
+/** A period-over-period delta pill: green when up, red when down (inverted for cost metrics). */
+function DeltaPill({ pct, invert = false }: { pct: number; invert?: boolean }) {
+  const rounded = Math.round(pct * 10) / 10;
+  const good = invert ? rounded < 0 : rounded > 0;
+  const neutral = rounded === 0;
+  const cls = neutral ? styles.deltaNeutral : good ? styles.deltaUp : styles.deltaDown;
+  const Icon = rounded >= 0 ? TrendingUp : TrendingDown;
+  return (
+    <span className={`${styles.delta} ${cls}`}>
+      <Icon size={12} />
+      {rounded > 0 ? '+' : ''}{rounded}%
+    </span>
+  );
 }
 
 const EVENT_LABEL: Record<AdEvent['state'], string> = {
@@ -52,6 +76,7 @@ export function CampaignPerformance() {
   const { user } = useCurrentUser();
   const [summary, setSummary] = useState<PerformanceSummary | null>(null);
   const [dailyData, setDailyData] = useState<DailyPerformance[]>([]);
+  const [comparison, setComparison] = useState<PerformanceComparison | null>(null);
   const [events, setEvents] = useState<AdEvent[]>([]);
   const [breakdown, setBreakdown] = useState<AdBreakdown | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,14 +97,16 @@ export function CampaignPerformance() {
     try {
       setIsLoading(true);
       setError(null);
-      const [summaryData, daily, recent, dims] = await Promise.all([
+      const [summaryData, daily, compare, recent, dims] = await Promise.all([
         campaignsApi.getPerformance(id!),
         campaignsApi.getDailyPerformance(id!, dayRange),
+        campaignsApi.getComparison(id!, 7).catch((): PerformanceComparison | null => null),
         activityApi.getRecent(id!, 15).catch((): AdEvent[] => []),
         activityApi.getBreakdown(id!).catch((): AdBreakdown | null => null),
       ]);
       setSummary(summaryData);
       setDailyData(daily);
+      setComparison(compare);
       setEvents(recent);
       setBreakdown(dims);
     } catch (err) {
@@ -99,17 +126,23 @@ export function CampaignPerformance() {
     }
   };
 
-  const maxImpressions = useMemo(() => {
-    if (dailyData.length === 0) return 1;
-    return Math.max(...dailyData.map((d) => d.impressions), 1);
-  }, [dailyData]);
+  const chartLabels = useMemo(() => dailyData.map((d) => d.date.slice(5)), [dailyData]);
 
-  const maxClicks = useMemo(() => {
-    if (dailyData.length === 0) return 1;
-    return Math.max(...dailyData.map((d) => d.clicks), 1);
-  }, [dailyData]);
+  const trafficSeries = useMemo<ChartSeries[]>(
+    () => [
+      { name: 'Impressions', color: CHART_COLORS.impressions, values: dailyData.map((d) => d.impressions), area: true },
+      { name: 'Clicks', color: CHART_COLORS.clicks, values: dailyData.map((d) => d.clicks) },
+    ],
+    [dailyData],
+  );
 
-  const chartMax = useMemo(() => Math.max(maxImpressions, maxClicks, 1), [maxImpressions, maxClicks]);
+  const moneySeries = useMemo<ChartSeries[]>(
+    () => [
+      { name: 'Spend', color: CHART_COLORS.spend, values: dailyData.map((d) => d.spend), format: formatCurrency },
+      { name: 'Revenue', color: CHART_COLORS.revenue, values: dailyData.map((d) => d.revenue), format: formatCurrency },
+    ],
+    [dailyData],
+  );
 
   const funnelSteps = useMemo(() => {
     if (!summary) return [];
@@ -224,6 +257,14 @@ export function CampaignPerformance() {
               <span className={styles.kpiValue}>{formatNumber(summary.impressions)}</span>
             </div>
             <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Reach</span>
+              <span className={styles.kpiValue}>{formatNumber(summary.reach)}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>Frequency</span>
+              <span className={styles.kpiValue}>{summary.frequency.toFixed(1)}×</span>
+            </div>
+            <div className={styles.kpiCard}>
               <span className={styles.kpiLabel}>Clicks</span>
               <span className={styles.kpiValue}>{formatNumber(summary.clicks)}</span>
             </div>
@@ -232,20 +273,53 @@ export function CampaignPerformance() {
               <span className={styles.kpiValue}>{formatPercent(summary.ctr)}</span>
             </div>
             <div className={styles.kpiCard}>
-              <span className={styles.kpiLabel}>Applications</span>
-              <span className={styles.kpiValue}>{formatNumber(summary.applications)}</span>
+              <span className={styles.kpiLabel}>Conversions</span>
+              <span className={styles.kpiValue}>{formatNumber(summary.conversions)}</span>
             </div>
             <div className={styles.kpiCard}>
-              <span className={styles.kpiLabel}>Deposits</span>
-              <span className={styles.kpiValue}>{formatNumber(summary.deposits)}</span>
+              <span className={styles.kpiLabel}>Conv. Rate</span>
+              <span className={styles.kpiValue}>{formatPercent(summary.conversionRate)}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>CPC</span>
+              <span className={styles.kpiValue}>{formatCurrency(summary.cpc)}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>CPM</span>
+              <span className={styles.kpiValue}>{formatCurrency(summary.cpm)}</span>
+            </div>
+            <div className={styles.kpiCard}>
+              <span className={styles.kpiLabel}>CPA</span>
+              <span className={styles.kpiValue}>{formatCurrency(summary.cpa)}</span>
             </div>
             <div className={styles.kpiCard}>
               <span className={styles.kpiLabel}>Revenue</span>
               <span className={styles.kpiValue}>{formatCurrency(summary.revenue)}</span>
             </div>
             <div className={`${styles.kpiCard} ${styles.kpiCardHighlight}`}>
+              <span className={styles.kpiLabel}>ROAS</span>
+              <span className={styles.kpiValue}>{summary.roas.toFixed(2)}×</span>
+            </div>
+            <div className={`${styles.kpiCard} ${styles.kpiCardHighlight}`}>
               <span className={styles.kpiLabel}>ROI</span>
               <span className={styles.kpiValue}>{formatPercent(summary.roi)}</span>
+            </div>
+          </div>
+
+          {/* Budget pacing */}
+          <div className={styles.pacingCard}>
+            <div className={styles.pacingHeader}>
+              <span className={styles.pacingTitle}>Budget pacing</span>
+              <span className={styles.pacingFigures}>
+                {formatCurrency(summary.spend)} of {formatCurrency(summary.budget)} spent ·{' '}
+                <strong>{formatCurrency(Math.max(summary.budget - summary.spend, 0))} remaining</strong>
+              </span>
+            </div>
+            <div className={styles.pacingTrack}>
+              <div
+                className={styles.pacingBar}
+                style={{ width: `${summary.budget > 0 ? Math.min((summary.spend / summary.budget) * 100, 100) : 0}%` }}
+              />
             </div>
           </div>
 
@@ -257,6 +331,40 @@ export function CampaignPerformance() {
             <strong>{formatNumber(summary.deposits)}</strong> deposits, an ROI of{' '}
             <strong>{formatPercent(summary.roi)}</strong>.
           </div>
+
+          {/* Period-over-period comparison (last 7 days vs previous 7) */}
+          {comparison && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Last {comparison.days} days vs previous {comparison.days}</h2>
+              <div className={styles.comparisonGrid}>
+                <div className={styles.comparisonCard}>
+                  <span className={styles.kpiLabel}>Impressions</span>
+                  <span className={styles.comparisonValue}>{formatNumber(comparison.current.impressions)}</span>
+                  <DeltaPill pct={comparison.change.impressionsPct} />
+                </div>
+                <div className={styles.comparisonCard}>
+                  <span className={styles.kpiLabel}>Clicks</span>
+                  <span className={styles.comparisonValue}>{formatNumber(comparison.current.clicks)}</span>
+                  <DeltaPill pct={comparison.change.clicksPct} />
+                </div>
+                <div className={styles.comparisonCard}>
+                  <span className={styles.kpiLabel}>Conversions</span>
+                  <span className={styles.comparisonValue}>{formatNumber(comparison.current.conversions)}</span>
+                  <DeltaPill pct={comparison.change.conversionsPct} />
+                </div>
+                <div className={styles.comparisonCard}>
+                  <span className={styles.kpiLabel}>Spend</span>
+                  <span className={styles.comparisonValue}>{formatCurrency(comparison.current.spend)}</span>
+                  <DeltaPill pct={comparison.change.spendPct} invert />
+                </div>
+                <div className={styles.comparisonCard}>
+                  <span className={styles.kpiLabel}>Revenue</span>
+                  <span className={styles.comparisonValue}>{formatCurrency(comparison.current.revenue)}</span>
+                  <DeltaPill pct={comparison.change.revenuePct} />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Conversion Funnel */}
           <div className={styles.section}>
@@ -321,40 +429,35 @@ export function CampaignPerformance() {
                 No daily performance data available for this period.
               </div>
             ) : (
-              <>
-                <div className={styles.chartContainer}>
-                  <div className={styles.chart}>
-                    {dailyData.map((day) => (
-                      <div key={day.date} className={styles.chartDay}>
-                        <div className={styles.chartBars}>
-                          <div
-                            className={`${styles.chartBar} ${styles.chartBarImpressions}`}
-                            style={{ height: `${(day.impressions / chartMax) * 160}px` }}
-                            title={`Impressions: ${formatNumber(day.impressions)}`}
-                          />
-                          <div
-                            className={`${styles.chartBar} ${styles.chartBarClicks}`}
-                            style={{ height: `${(day.clicks / chartMax) * 160}px` }}
-                            title={`Clicks: ${formatNumber(day.clicks)}`}
-                          />
-                        </div>
-                        <span className={styles.chartDate}>{day.date.slice(5)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className={styles.chartLegend}>
-                  <span className={styles.legendItem}>
-                    <span className={`${styles.legendDot} ${styles.legendImpressions}`} />
-                    Impressions
-                  </span>
-                  <span className={styles.legendItem}>
-                    <span className={`${styles.legendDot} ${styles.legendClicks}`} />
-                    Clicks
-                  </span>
-                </div>
-              </>
+              <TimeSeriesChart labels={chartLabels} series={trafficSeries} />
             )}
+          </div>
+
+          {/* Spend vs Revenue trend */}
+          {dailyData.length > 0 && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Spend vs Revenue</h2>
+              <TimeSeriesChart labels={chartLabels} series={moneySeries} yFormat={formatCurrency} />
+            </div>
+          )}
+
+          {/* Conversions by type */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Conversions by type</h2>
+            <div className={styles.convTypeGrid}>
+              <div className={styles.convTypeCard}>
+                <span className={styles.kpiLabel}>Applications</span>
+                <span className={styles.kpiValue}>{formatNumber(summary.conversionsByType.application)}</span>
+              </div>
+              <div className={styles.convTypeCard}>
+                <span className={styles.kpiLabel}>Deposits</span>
+                <span className={styles.kpiValue}>{formatNumber(summary.conversionsByType.deposit)}</span>
+              </div>
+              <div className={styles.convTypeCard}>
+                <span className={styles.kpiLabel}>Other</span>
+                <span className={styles.kpiValue}>{formatNumber(summary.conversionsByType.generic)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Where it's shown (platform / format / location) */}

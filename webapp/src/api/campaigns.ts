@@ -4,6 +4,12 @@ import { apiClient } from './client';
 // FRONTEND TYPES (used by pages)
 // =====================================================
 
+export interface ConversionBreakdown {
+  application: number;
+  deposit: number;
+  generic: number;
+}
+
 export interface PerformanceSummary {
   campaignId: string;
   campaignName: string;
@@ -17,32 +23,70 @@ export interface PerformanceSummary {
   revenue: number;
   impressions: number;
   clicks: number;
+  conversions: number;
   applications: number;
   deposits: number;
+  reach: number;
   ctr: number;
   cpc: number;
+  cpm: number;
   cpa: number;
   roi: number;
+  roas: number;
   conversionRate: number;
+  frequency: number;
+  conversionsByType: ConversionBreakdown;
 }
 
 export interface DailyPerformance {
   date: string;
   impressions: number;
   clicks: number;
+  conversions: number;
   applications: number;
   deposits: number;
   spend: number;
+  revenue: number;
+  ctr: number;
+  cpc: number;
+  conversionRate: number;
+  roas: number;
 }
 
 export interface PerformanceOverview {
   totalSpend: number;
+  totalRevenue: number;
   totalImpressions: number;
   totalClicks: number;
+  totalConversions: number;
   totalApplications: number;
   totalDeposits: number;
   averageCtr: number;
+  averageRoas: number;
   campaignCount: number;
+}
+
+export interface PeriodMetrics {
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend: number;
+  revenue: number;
+  ctr: number;
+  roas: number;
+}
+
+export interface PerformanceComparison {
+  days: number;
+  current: PeriodMetrics;
+  previous: PeriodMetrics;
+  change: {
+    impressionsPct: number;
+    clicksPct: number;
+    conversionsPct: number;
+    spendPct: number;
+    revenuePct: number;
+  };
 }
 
 export interface CampaignEstimate {
@@ -449,6 +493,10 @@ export const campaignsApi = {
 
   async getDailyPerformance(id: string, days?: number): Promise<DailyPerformance[]> {
     return apiClient.post<DailyPerformance[]>('/campaigns/performance-daily', { id, days });
+  },
+
+  async getComparison(id: string, days?: number): Promise<PerformanceComparison> {
+    return apiClient.post<PerformanceComparison>('/campaigns/performance-comparison', { id, days });
   },
 
   async getPerformanceOverview(): Promise<PerformanceOverview> {

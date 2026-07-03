@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Download, Loader, BarChart3, TrendingUp, Check, X } from 'lucide-react';
 import { Header, Footer } from '../components/layout';
 import { Button, Badge } from '../components/ui';
-import { campaignsApi, type CampaignSummary } from '../api/campaigns';
+import { BarChart, type BarChartItem } from '../components/charts';
+import { campaignsApi, type CampaignSummary, type PerformanceOverview } from '../api/campaigns';
 import { runQuery, DEFAULT_TTL } from '../lib/queryCache';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/formatters';
 import styles from './Reports.module.css';
@@ -16,22 +17,33 @@ interface AccountTotals {
   spent: number;
   revenue: number;
   roi: number;
+  roas: number;
+  cpc: number;
+  cpm: number;
 }
 
-function summarize(campaigns: CampaignSummary[]): AccountTotals {
-  const impressions = campaigns.reduce((sum, c) => sum + c.impressions, 0);
-  const clicks = campaigns.reduce((sum, c) => sum + c.clicks, 0);
-  const spent = campaigns.reduce((sum, c) => sum + c.spent, 0);
-  const revenue = campaigns.reduce((sum, c) => sum + c.revenue, 0);
+/**
+ * Account-wide totals. Prefers the server-aggregated overview (accurate across
+ * any number of campaigns); falls back to summing the loaded page if it is absent.
+ */
+function summarize(campaigns: CampaignSummary[], overview: PerformanceOverview | null): AccountTotals {
+  const impressions = overview?.totalImpressions ?? campaigns.reduce((sum, c) => sum + c.impressions, 0);
+  const clicks = overview?.totalClicks ?? campaigns.reduce((sum, c) => sum + c.clicks, 0);
+  const spent = overview?.totalSpend ?? campaigns.reduce((sum, c) => sum + c.spent, 0);
+  const revenue = overview?.totalRevenue ?? campaigns.reduce((sum, c) => sum + c.revenue, 0);
+  const conversions = overview?.totalConversions ?? campaigns.reduce((sum, c) => sum + c.conversions, 0);
   return {
-    campaigns: campaigns.length,
+    campaigns: overview?.campaignCount ?? campaigns.length,
     impressions,
     clicks,
-    ctr: impressions === 0 ? 0 : (clicks / impressions) * 100,
-    conversions: campaigns.reduce((sum, c) => sum + c.conversions, 0),
+    ctr: overview?.averageCtr ?? (impressions === 0 ? 0 : (clicks / impressions) * 100),
+    conversions,
     spent,
     revenue,
     roi: spent === 0 ? 0 : ((revenue - spent) / spent) * 100,
+    roas: overview?.averageRoas ?? (spent === 0 ? 0 : revenue / spent),
+    cpc: clicks === 0 ? 0 : spent / clicks,
+    cpm: impressions === 0 ? 0 : (spent / impressions) * 1000,
   };
 }
 
@@ -39,6 +51,7 @@ const statusLabel = (status: string): string => status.charAt(0).toUpperCase() +
 
 export function Reports() {
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
+  const [overview, setOverview] = useState<PerformanceOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -50,10 +63,16 @@ export function Reports() {
 
   useEffect(() => {
     let active = true;
-    runQuery('webapp:reports:campaigns', () => campaignsApi.getAll(), DEFAULT_TTL)
-      .then((data) => {
+    Promise.all([
+      runQuery('webapp:reports:campaigns', () => campaignsApi.getAll(), DEFAULT_TTL),
+      runQuery('webapp:reports:overview', () => campaignsApi.getPerformanceOverview(), DEFAULT_TTL).catch(
+        (): PerformanceOverview | null => null,
+      ),
+    ])
+      .then(([data, ov]) => {
         if (active) {
           setCampaigns(data);
+          setOverview(ov);
           setLoading(false);
         }
       })
@@ -68,7 +87,17 @@ export function Reports() {
     };
   }, [showToast]);
 
-  const totals = useMemo(() => summarize(campaigns), [campaigns]);
+  const totals = useMemo(() => summarize(campaigns, overview), [campaigns, overview]);
+
+  const topBySpend = useMemo<BarChartItem[]>(
+    () =>
+      [...campaigns]
+        .filter((c) => c.spent > 0)
+        .sort((a, b) => b.spent - a.spent)
+        .slice(0, 6)
+        .map((c) => ({ label: c.name, value: c.spent, caption: `${formatPercent(c.roi)} ROI` })),
+    [campaigns],
+  );
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -151,12 +180,31 @@ export function Reports() {
                   <span className={styles.kpiValue}>{formatCurrency(totals.revenue)}</span>
                 </div>
                 <div className={styles.kpiCard}>
+                  <span className={styles.kpiLabel}>CPC</span>
+                  <span className={styles.kpiValue}>{formatCurrency(totals.cpc)}</span>
+                </div>
+                <div className={styles.kpiCard}>
+                  <span className={styles.kpiLabel}>CPM</span>
+                  <span className={styles.kpiValue}>{formatCurrency(totals.cpm)}</span>
+                </div>
+                <div className={styles.kpiCard}>
+                  <span className={styles.kpiLabel}>ROAS</span>
+                  <span className={styles.kpiValue}>{totals.roas.toFixed(2)}×</span>
+                </div>
+                <div className={styles.kpiCard}>
                   <span className={styles.kpiLabel}>
                     <TrendingUp size={14} /> ROI
                   </span>
                   <span className={`${styles.kpiValue} ${roiClass}`}>{formatPercent(totals.roi)}</span>
                 </div>
               </div>
+
+              {topBySpend.length > 0 && (
+                <div className={styles.tableCard}>
+                  <h2 className={styles.sectionTitle}>Top campaigns by spend</h2>
+                  <BarChart items={topBySpend} format={formatCurrency} />
+                </div>
+              )}
 
               <div className={styles.tableCard}>
                 <h2 className={styles.sectionTitle}>Campaign Breakdown</h2>
