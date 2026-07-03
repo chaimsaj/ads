@@ -95,3 +95,25 @@
   align-items: center;
   gap: var(--space-4);
 }
+
+.filters {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.filters > :first-child {
+  flex: 1;
+  min-width: 220px;
+}
+
+.select {
+  padding: var(--space-4) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-primary);
+}

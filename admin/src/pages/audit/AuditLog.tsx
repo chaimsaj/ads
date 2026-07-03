@@ -1,5 +1,6 @@
-import { ScrollText } from 'lucide-react';
-import { Card, CardContent } from '../../components/ui';
+import { useMemo, useState } from 'react';
+import { ScrollText, Search } from 'lucide-react';
+import { Card, CardContent, Input } from '../../components/ui';
 import { useQuery } from '../../lib/queryCache';
 import { auditApi, type AuditEntry } from '../../api/audit';
 import { formatDateTime, titleCase } from '../../utils/formatters';
@@ -16,8 +17,26 @@ const actionVariant: Record<string, 'success' | 'error' | 'warning' | 'info' | '
 };
 
 export function AuditLog() {
-  const { data, isLoading, error } = useQuery<AuditEntry[]>('admin:audit', () => auditApi.getRecent(100));
-  const entries = data ?? [];
+  const { data, isLoading, error } = useQuery<AuditEntry[]>('admin:audit', () => auditApi.getRecent(200));
+  const allEntries = useMemo(() => data ?? [], [data]);
+  const [search, setSearch] = useState('');
+  const [actionFilter, setActionFilter] = useState('');
+
+  const actions = useMemo(
+    () => Array.from(new Set(allEntries.map((e) => e.action))).sort(),
+    [allEntries],
+  );
+
+  const entries = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allEntries.filter((e) => {
+      if (actionFilter && e.action !== actionFilter) return false;
+      if (!q) return true;
+      return [e.actorName, e.action, e.targetType, e.targetName, e.targetId, e.detail].some((f) =>
+        (f ?? '').toLowerCase().includes(q),
+      );
+    });
+  }, [allEntries, search, actionFilter]);
 
   return (
     <div className={styles.page}>
@@ -26,6 +45,23 @@ export function AuditLog() {
           <h1 className={styles.title}>Audit Log</h1>
           <p className={styles.subtitle}>Every governance action taken by an administrator</p>
         </div>
+      </div>
+
+      <div className={styles.filters}>
+        <Input
+          placeholder="Search by admin, action, target, detail…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          leftIcon={<Search size={16} />}
+        />
+        <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className={styles.select}>
+          <option value="">All actions</option>
+          {actions.map((a) => (
+            <option key={a} value={a}>
+              {titleCase(a)}
+            </option>
+          ))}
+        </select>
       </div>
 
       <Card>
