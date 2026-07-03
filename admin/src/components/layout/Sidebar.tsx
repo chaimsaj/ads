@@ -6,6 +6,7 @@ import {
   CreditCard,
   Mail,
   ScrollText,
+  AlertOctagon,
   Settings,
   LogOut,
   ChevronLeft,
@@ -28,6 +29,7 @@ const navItems = [
   { path: '/payments', icon: CreditCard, label: 'Payments' },
   { path: '/emails', icon: Mail, label: 'Emails' },
   { path: '/audit', icon: ScrollText, label: 'Audit Log' },
+  { path: '/logs', icon: AlertOctagon, label: 'Error Logs' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 

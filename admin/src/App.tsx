@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AdminLayout, ProtectedRoute } from './components/layout';
 import { Dashboard, Users, Campaigns, Settings, Login, StripePayments, SendGridEmails } from './pages';
 import { AuditLog } from './pages/audit/AuditLog';
+import { ErrorLogs } from './pages/logs/ErrorLogs';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/payments" element={<StripePayments />} />
             <Route path="/emails" element={<SendGridEmails />} />
             <Route path="/audit" element={<AuditLog />} />
+            <Route path="/logs" element={<ErrorLogs />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>
