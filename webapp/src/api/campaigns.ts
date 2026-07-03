@@ -495,6 +495,11 @@ export const campaignsApi = {
     return apiClient.post<DailyPerformance[]>('/campaigns/performance-daily', { id, days });
   },
 
+  /** Account-wide daily trend across all of the advertiser's campaigns. */
+  async getAccountDaily(days?: number): Promise<DailyPerformance[]> {
+    return apiClient.post<DailyPerformance[]>('/campaigns/performance-daily-account', { days });
+  },
+
   async getComparison(id: string, days?: number): Promise<PerformanceComparison> {
     return apiClient.post<PerformanceComparison>('/campaigns/performance-comparison', { id, days });
   },

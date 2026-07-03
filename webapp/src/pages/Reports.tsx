@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Download, Loader, BarChart3, TrendingUp, Check, X } from 'lucide-react';
 import { Header, Footer } from '../components/layout';
 import { Button, Badge } from '../components/ui';
-import { BarChart, type BarChartItem } from '../components/charts';
-import { campaignsApi, type CampaignSummary, type PerformanceOverview } from '../api/campaigns';
+import { BarChart, TimeSeriesChart, type BarChartItem, type ChartSeries } from '../components/charts';
+import { campaignsApi, type CampaignSummary, type PerformanceOverview, type DailyPerformance } from '../api/campaigns';
 import { runQuery, DEFAULT_TTL } from '../lib/queryCache';
 import { formatCurrency, formatNumber, formatPercent } from '../utils/formatters';
 import styles from './Reports.module.css';
@@ -52,6 +52,7 @@ const statusLabel = (status: string): string => status.charAt(0).toUpperCase() +
 export function Reports() {
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
   const [overview, setOverview] = useState<PerformanceOverview | null>(null);
+  const [accountDaily, setAccountDaily] = useState<DailyPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -68,11 +69,15 @@ export function Reports() {
       runQuery('webapp:reports:overview', () => campaignsApi.getPerformanceOverview(), DEFAULT_TTL).catch(
         (): PerformanceOverview | null => null,
       ),
+      runQuery('webapp:reports:accountDaily', () => campaignsApi.getAccountDaily(30), DEFAULT_TTL).catch(
+        (): DailyPerformance[] => [],
+      ),
     ])
-      .then(([data, ov]) => {
+      .then(([data, ov, daily]) => {
         if (active) {
           setCampaigns(data);
           setOverview(ov);
+          setAccountDaily(daily);
           setLoading(false);
         }
       })
@@ -97,6 +102,22 @@ export function Reports() {
         .slice(0, 6)
         .map((c) => ({ label: c.name, value: c.spent, caption: `${formatPercent(c.roi)} ROI` })),
     [campaigns],
+  );
+
+  const trendLabels = useMemo(() => accountDaily.map((d) => d.date.slice(5)), [accountDaily]);
+  const trafficSeries = useMemo<ChartSeries[]>(
+    () => [
+      { name: 'Impressions', color: 'var(--color-primary-700)', values: accountDaily.map((d) => d.impressions), area: true },
+      { name: 'Clicks', color: 'var(--color-secondary-400)', values: accountDaily.map((d) => d.clicks) },
+    ],
+    [accountDaily],
+  );
+  const moneySeries = useMemo<ChartSeries[]>(
+    () => [
+      { name: 'Spend', color: '#e0794b', values: accountDaily.map((d) => d.spend), format: formatCurrency },
+      { name: 'Revenue', color: '#2e9e6b', values: accountDaily.map((d) => d.revenue), format: formatCurrency },
+    ],
+    [accountDaily],
   );
 
   const handleExport = useCallback(async () => {
@@ -198,6 +219,20 @@ export function Reports() {
                   <span className={`${styles.kpiValue} ${roiClass}`}>{formatPercent(totals.roi)}</span>
                 </div>
               </div>
+
+              {accountDaily.length > 0 && (
+                <div className={styles.tableCard}>
+                  <h2 className={styles.sectionTitle}>Traffic — last 30 days</h2>
+                  <TimeSeriesChart labels={trendLabels} series={trafficSeries} />
+                </div>
+              )}
+
+              {accountDaily.length > 0 && (
+                <div className={styles.tableCard}>
+                  <h2 className={styles.sectionTitle}>Spend vs Revenue — last 30 days</h2>
+                  <TimeSeriesChart labels={trendLabels} series={moneySeries} yFormat={formatCurrency} />
+                </div>
+              )}
 
               {topBySpend.length > 0 && (
                 <div className={styles.tableCard}>

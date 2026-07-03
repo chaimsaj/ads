@@ -1,9 +1,9 @@
 import { Users, Megaphone, DollarSign, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
-import { BarChart, type BarChartItem } from '../../components/charts';
+import { BarChart, TimeSeriesChart, type BarChartItem, type ChartSeries } from '../../components/charts';
 import { useQuery } from '../../lib/queryCache';
 import { formatCurrency, formatNumber, formatDateTime, formatPercent } from '../../utils/formatters';
-import { dashboardApi } from '../../api/dashboard';
+import { dashboardApi, type DashboardTrendPoint } from '../../api/dashboard';
 import { activityApi, type AdBreakdown, type BreakdownBucket } from '../../api/activity';
 import { useAuth } from '../../context/AuthContext';
 import type { DashboardData } from '../../types';
@@ -35,6 +35,17 @@ export function Dashboard() {
     dashboardApi.getStats()
   );
   const { data: breakdown } = useQuery<AdBreakdown>('admin:breakdown', () => activityApi.getBreakdown());
+  const { data: trend } = useQuery<DashboardTrendPoint[]>('admin:trend', () => dashboardApi.getTrend(30));
+
+  const trendLabels = (trend ?? []).map((d) => d.date.slice(5));
+  const trafficSeries: ChartSeries[] = [
+    { name: 'Impressions', color: 'var(--color-primary-700)', values: (trend ?? []).map((d) => d.impressions), area: true },
+    { name: 'Clicks', color: 'var(--color-info)', values: (trend ?? []).map((d) => d.clicks) },
+  ];
+  const moneySeries: ChartSeries[] = [
+    { name: 'Spend', color: '#e0794b', values: (trend ?? []).map((d) => d.spend), format: formatCurrency },
+    { name: 'Revenue', color: 'var(--color-success)', values: (trend ?? []).map((d) => d.revenue), format: formatCurrency },
+  ];
 
   if (isLoading) {
     return (
@@ -180,6 +191,20 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {trend && trend.length > 0 && (
+        <Card className={styles.breakdownCard}>
+          <CardHeader>
+            <CardTitle>Platform Trend — last 30 days</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TimeSeriesChart labels={trendLabels} series={trafficSeries} />
+            <div className={styles.trendSpacer}>
+              <TimeSeriesChart labels={trendLabels} series={moneySeries} yFormat={formatCurrency} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {breakdown && (
         <Card className={styles.breakdownCard}>

@@ -3,6 +3,15 @@ import { activityApi } from './activity';
 import { campaignsApi } from './campaigns';
 import type { Activity, DashboardData } from '../types';
 
+export interface DashboardTrendPoint {
+  date: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend: number;
+  revenue: number;
+}
+
 interface BackendDashboardStats {
   totalUsers: number;
   newUsersThisMonth: number;
@@ -41,5 +50,14 @@ export const dashboardApi = {
       },
       recentActivity,
     };
+  },
+
+  getTrend: async (days = 30): Promise<DashboardTrendPoint[]> => {
+    try {
+      const data = await apiClient.post<DashboardTrendPoint[]>('/dashboard/trend', { days });
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
   },
 };
