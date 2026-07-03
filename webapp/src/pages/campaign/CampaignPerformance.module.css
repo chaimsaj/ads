@@ -119,7 +119,7 @@
 }
 
 .kpiCardHighlight {
-  background-color: #d4edda;
+  background-color: var(--color-success-bg);
 }
 
 .kpiLabel {
@@ -323,13 +323,13 @@
 }
 
 .deltaUp {
-  background-color: #e3f5ea;
-  color: #1c7a4a;
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .deltaDown {
-  background-color: #fdecea;
-  color: #c0392b;
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .deltaNeutral {

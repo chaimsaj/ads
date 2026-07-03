@@ -24,8 +24,8 @@ function formatDate(iso: string | null): string {
 const CHART_COLORS = {
   impressions: 'var(--color-primary-700)',
   clicks: 'var(--color-secondary-400)',
-  spend: '#e0794b',
-  revenue: '#2e9e6b',
+  spend: 'var(--color-warning)',
+  revenue: 'var(--color-success)',
 };
 
 /** A period-over-period delta pill: green when up, red when down (inverted for cost metrics). */
@@ -53,16 +53,16 @@ const EVENT_LABEL: Record<AdEvent['state'], string> = {
 function BreakdownColumn({ title, buckets }: { title: string; buckets: BreakdownBucket[] }) {
   return (
     <div style={{ flex: 1, minWidth: 200 }}>
-      <h4 style={{ margin: '0 0 10px 0', fontSize: 12, color: '#8895a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h4>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: 12, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h4>
       {buckets.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#8895a1' }}>No data yet.</p>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>No data yet.</p>
       ) : (
         buckets.slice(0, 6).map((b) => {
           const ctr = b.impressed > 0 ? (b.clicked / b.impressed) * 100 : 0;
           return (
-            <div key={b.key} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eef1f4', fontSize: 13 }}>
-              <span style={{ color: '#0f2a36', fontWeight: 500 }}>{b.key}</span>
-              <span style={{ color: '#52606d' }}>{formatNumber(b.impressed)} views · {formatPercent(ctr, 1)} CTR</span>
+            <div key={b.key} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-gray-200)', fontSize: 13 }}>
+              <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{b.key}</span>
+              <span style={{ color: 'var(--color-text-secondary)' }}>{formatNumber(b.impressed)} views · {formatPercent(ctr, 1)} CTR</span>
             </div>
           );
         })
@@ -164,13 +164,13 @@ export function CampaignPerformance() {
         label: 'Applications',
         value: summary.applications,
         percentage: (summary.applications / maxVal) * 100,
-        color: '#f0d994',
+        color: 'var(--color-warning-light)',
       },
       {
         label: 'Deposits',
         value: summary.deposits,
         percentage: (summary.deposits / maxVal) * 100,
-        color: '#aad9be',
+        color: 'var(--color-success-light)',
       },
     ];
   }, [summary]);
@@ -482,22 +482,22 @@ export function CampaignPerformance() {
                 {events.map((e) => (
                   <li
                     key={e.servedAdId + e.state + e.servedAt}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #eef1f4' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--color-gray-200)' }}
                   >
                     <span
                       style={{
                         width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                         backgroundColor:
-                          e.state === 'converted' ? '#16a34a'
-                          : e.state === 'clicked' ? '#0f766e'
-                          : e.state === 'impressed' ? '#2563eb' : '#94a3b8',
+                          e.state === 'converted' ? 'var(--color-success)'
+                          : e.state === 'clicked' ? 'var(--color-primary-700)'
+                          : e.state === 'impressed' ? 'var(--color-info)' : 'var(--color-gray-600)',
                       }}
                     />
-                    <span style={{ flex: 1, fontSize: 14, color: '#3b4754' }}>
+                    <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>
                       {EVENT_LABEL[e.state]} · {e.format}
                       {e.deviceId ? ` · ${e.deviceId.slice(0, 16)}` : ''}
                     </span>
-                    <span style={{ fontSize: 12, color: '#8895a1', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
                       {formatDateTime(e.servedAt)}
                     </span>
                   </li>

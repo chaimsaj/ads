@@ -114,8 +114,8 @@ export function Reports() {
   );
   const moneySeries = useMemo<ChartSeries[]>(
     () => [
-      { name: 'Spend', color: '#e0794b', values: accountDaily.map((d) => d.spend), format: formatCurrency },
-      { name: 'Revenue', color: '#2e9e6b', values: accountDaily.map((d) => d.revenue), format: formatCurrency },
+      { name: 'Spend', color: 'var(--color-warning)', values: accountDaily.map((d) => d.spend), format: formatCurrency },
+      { name: 'Revenue', color: 'var(--color-success)', values: accountDaily.map((d) => d.revenue), format: formatCurrency },
     ],
     [accountDaily],
   );

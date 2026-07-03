@@ -43,7 +43,7 @@ export function Dashboard() {
     { name: 'Clicks', color: 'var(--color-info)', values: (trend ?? []).map((d) => d.clicks) },
   ];
   const moneySeries: ChartSeries[] = [
-    { name: 'Spend', color: '#e0794b', values: (trend ?? []).map((d) => d.spend), format: formatCurrency },
+    { name: 'Spend', color: 'var(--color-warning)', values: (trend ?? []).map((d) => d.spend), format: formatCurrency },
     { name: 'Revenue', color: 'var(--color-success)', values: (trend ?? []).map((d) => d.revenue), format: formatCurrency },
   ];
 

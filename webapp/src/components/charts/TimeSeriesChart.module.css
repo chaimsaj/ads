@@ -18,7 +18,7 @@
 .yLabel,
 .xLabel {
   fill: var(--color-text-secondary);
-  font-family: var(--font-secondary, sans-serif);
+  font-family: var(--font-primary);
   font-size: 11px;
 }
 
