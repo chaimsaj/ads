@@ -38,3 +38,7 @@ The SPA fallback is essential: without it, refreshing a client-side route (e.g. 
   for the push trigger to fire (`workflow_dispatch` also needs them on the default branch).
 - No runtime environment variables/secrets are needed on the App Services for the SPAs — everything is
   static. Only the API service needs server-side app settings.
+
+## Note on Azure's auto-generated workflows
+
+Azure Deployment Center had generated OIDC workflows `master_myngly-ads-admin.yml` / `master_myngly-ads-webapp.yml` that ran `npm install && npm run build` at the **repo root** (there is no root `package.json`) and deployed `.` with no static server — they do **not** work for this two-app repo. They were removed in favor of the per-app publish-profile workflows above. The leftover `AZUREAPPSERVICE_*` OIDC secrets are unused and can be deleted.
