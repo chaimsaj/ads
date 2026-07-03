@@ -1,0 +1,107 @@
+name: Deploy Admin to Azure
+
+# Builds the admin SPA and deploys it to the Azure Web App "myngly-ads-admin"
+# (Linux, Node 24) on push to master. A Node App Service must run a process that
+# listens on $PORT, so we ship a tiny zero-dependency static server that serves
+# the Vite build with SPA fallback (deep links must not 404 on refresh).
+#
+# One-time setup:
+#   - GitHub repo secret AZURE_ADMIN_PUBLISH_PROFILE = the App Service publish profile XML.
+#   - App Service stack: Node 24 LTS (Linux).
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'admin/**'
+      - '.github/workflows/deploy-admin-azure.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: myngly-ads-admin
+  APP_DIR: admin
+  NODE_VERSION: '24'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-admin
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install
+        working-directory: admin
+        run: npm ci
+
+      - name: Build
+        working-directory: admin
+        run: npm run build
+
+      - name: Assemble deploy package (dist + static SPA host)
+        run: |
+          rm -rf out && mkdir -p out
+          cp -r admin/dist out/dist
+          cat > out/package.json <<'JSON'
+          {
+            "name": "myngly-ads-admin-host",
+            "private": true,
+            "type": "module",
+            "scripts": { "start": "node server.mjs" }
+          }
+          JSON
+          cat > out/server.mjs <<'EOF'
+          import { createServer } from 'node:http';
+          import { readFile, stat } from 'node:fs/promises';
+          import { join, normalize, extname } from 'node:path';
+
+          const ROOT = join(process.cwd(), 'dist');
+          const PORT = process.env.PORT || 8080;
+          const MIME = {
+            '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
+            '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml',
+            '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
+            '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff': 'font/woff', '.woff2': 'font/woff2',
+            '.ttf': 'font/ttf', '.map': 'application/json', '.webmanifest': 'application/manifest+json',
+            '.txt': 'text/plain; charset=utf-8',
+          };
+
+          const server = createServer(async (req, res) => {
+            try {
+              const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+              let filePath = normalize(join(ROOT, pathname));
+              if (!filePath.startsWith(ROOT)) { res.writeHead(403).end('Forbidden'); return; }
+              let ext = extname(filePath);
+              let isFile = false;
+              try { isFile = (await stat(filePath)).isFile(); } catch { /* fall through to SPA fallback */ }
+              if (!isFile) { filePath = join(ROOT, 'index.html'); ext = '.html'; }
+              const body = await readFile(filePath);
+              res.writeHead(200, {
+                'Content-Type': MIME[ext] || 'application/octet-stream',
+                'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable',
+              });
+              res.end(body);
+            } catch {
+              if (!res.headersSent) res.writeHead(500);
+              res.end('Internal Server Error');
+            }
+          });
+          server.listen(PORT, () => console.log(`SPA host listening on ${PORT}`));
+          EOF
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_ADMIN_PUBLISH_PROFILE }}
+          package: out
+          startup-command: 'node server.mjs'
