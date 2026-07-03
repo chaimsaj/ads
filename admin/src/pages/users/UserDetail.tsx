@@ -98,11 +98,11 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   />
                   <div>
-                    <label style={{ display: 'block', marginBottom: 4, fontSize: 13, fontWeight: 500 }}>Role</label>
+                    <label className={styles.roleLabel}>Role</label>
                     <select
                       value={formData.role}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
-                      style={{ width: '100%', padding: '8px 10px', fontSize: 13, borderRadius: 6, border: '1px solid var(--border-color, #d1d5db)', fontFamily: 'inherit' }}
+                      className={styles.roleSelect}
                     >
                       <option value="advertiser">Advertiser</option>
                       <option value="admin">Admin</option>

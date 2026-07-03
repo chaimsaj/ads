@@ -173,15 +173,23 @@
 .userInfo {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 160px;
 }
 
 .userName {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--color-neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .userRole {
   font-size: var(--text-xs);
   color: var(--color-neutral-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
