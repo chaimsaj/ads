@@ -44,32 +44,5 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ],
 };
 
-export function hasPermission(
-  userPermissions: string[],
-  userRole: string,
-  permission: Permission
-): boolean {
-  if (userRole === 'super_admin') return true;
-  return userPermissions.includes(permission);
-}
-
-export function canAccessSettings(
-  userPermissions: string[],
-  userRole: string
-): boolean {
-  return hasPermission(userPermissions, userRole, PERMISSIONS.SETTINGS_READ);
-}
-
-export function canManageUsers(
-  userPermissions: string[],
-  userRole: string
-): boolean {
-  return hasPermission(userPermissions, userRole, PERMISSIONS.USERS_WRITE);
-}
-
-export function canApproveCampaigns(
-  userPermissions: string[],
-  userRole: string
-): boolean {
-  return hasPermission(userPermissions, userRole, PERMISSIONS.CAMPAIGNS_APPROVE);
-}
+// Permission checks are done via the AuthContext's `hasPermission(permission)`, which resolves
+// the effective set from the current user's role (ROLE_PERMISSIONS above). No standalone helpers here.
