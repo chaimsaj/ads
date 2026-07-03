@@ -235,7 +235,7 @@ export function CampaignPerformance() {
               </span>
               <span className={styles.metaItem}>
                 <Image size={14} />
-                {summary.adFormat}
+                {summary.adFormat.toUpperCase()}
               </span>
               {summary.locationName && (
                 <span className={styles.metaItem}>
