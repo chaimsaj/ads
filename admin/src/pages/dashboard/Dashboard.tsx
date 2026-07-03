@@ -1,5 +1,6 @@
 import { Users, Megaphone, DollarSign, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
+import { BarChart, type BarChartItem } from '../../components/charts';
 import { useQuery } from '../../lib/queryCache';
 import { formatCurrency, formatNumber, formatDateTime, formatPercent } from '../../utils/formatters';
 import { dashboardApi } from '../../api/dashboard';
@@ -8,22 +9,21 @@ import { useAuth } from '../../context/AuthContext';
 import type { DashboardData } from '../../types';
 import styles from './Dashboard.module.css';
 
-function BreakdownTable({ title, buckets }: { title: string; buckets: BreakdownBucket[] }) {
+function BreakdownChart({ title, buckets }: { title: string; buckets: BreakdownBucket[] }) {
+  const items: BarChartItem[] = buckets
+    .slice(0, 6)
+    .map((b) => ({
+      label: b.key,
+      value: b.impressed,
+      caption: `${formatPercent(b.impressed > 0 ? (b.clicked / b.impressed) * 100 : 0, 1)} CTR`,
+    }));
   return (
-    <div style={{ flex: 1, minWidth: 220 }}>
-      <h4 style={{ margin: '0 0 10px 0', fontSize: 13, color: '#52606d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h4>
-      {buckets.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#8895a1' }}>No data yet.</p>
+    <div className={styles.breakdownColumn}>
+      <h4 className={styles.breakdownTitle}>{title}</h4>
+      {items.length === 0 ? (
+        <p className={styles.breakdownEmpty}>No data yet.</p>
       ) : (
-        buckets.slice(0, 6).map((b) => {
-          const ctr = b.impressed > 0 ? (b.clicked / b.impressed) * 100 : 0;
-          return (
-            <div key={b.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eef1f4', fontSize: 13 }}>
-              <span style={{ color: '#0f2a36', fontWeight: 500 }}>{b.key}</span>
-              <span style={{ color: '#52606d' }}>{formatNumber(b.impressed)} views · {formatPercent(ctr, 1)} CTR</span>
-            </div>
-          );
-        })
+        <BarChart items={items} format={(v) => `${formatNumber(v)} views`} />
       )}
     </div>
   );
@@ -78,28 +78,52 @@ export function Dashboard() {
         <StatCard
           title="Total Users"
           value={formatNumber(stats.totalUsers)}
-          change={stats.userGrowth}
           icon={<Users size={24} />}
           color="primary"
         />
         <StatCard
           title="Active Campaigns"
           value={formatNumber(stats.activeCampaigns)}
-          change={stats.campaignGrowth}
           icon={<Megaphone size={24} />}
           color="info"
         />
         <StatCard
           title="Total Revenue"
           value={formatCurrency(stats.totalRevenue)}
-          change={stats.revenueGrowth}
           icon={<DollarSign size={24} />}
           color="success"
         />
         <StatCard
           title="Pending Approvals"
-          value={stats.pendingApprovals.toString()}
+          value={formatNumber(stats.pendingApprovals)}
           icon={<Clock size={24} />}
+          color="warning"
+        />
+      </div>
+
+      <div className={styles.statsGrid}>
+        <StatCard
+          title="Revenue This Month"
+          value={formatCurrency(stats.monthlyRevenue)}
+          icon={<DollarSign size={24} />}
+          color="success"
+        />
+        <StatCard
+          title="Impressions"
+          value={formatNumber(stats.totalImpressions)}
+          icon={<TrendingUp size={24} />}
+          color="info"
+        />
+        <StatCard
+          title="Clicks"
+          value={formatNumber(stats.totalClicks)}
+          icon={<Megaphone size={24} />}
+          color="primary"
+        />
+        <StatCard
+          title="Average CTR"
+          value={formatPercent(stats.averageCtr, 2)}
+          icon={<TrendingUp size={24} />}
           color="warning"
         />
       </div>
@@ -137,8 +161,8 @@ export function Dashboard() {
           <CardContent>
             <div className={styles.quickStatsList}>
               <div className={styles.quickStat}>
-                <span className={styles.quickStatLabel}>Active Users</span>
-                <span className={styles.quickStatValue}>{formatNumber(stats.activeUsers)}</span>
+                <span className={styles.quickStatLabel}>New Users (this month)</span>
+                <span className={styles.quickStatValue}>{formatNumber(stats.newUsersThisMonth)}</span>
               </div>
               <div className={styles.quickStat}>
                 <span className={styles.quickStatLabel}>Total Campaigns</span>
@@ -146,11 +170,11 @@ export function Dashboard() {
               </div>
               <div className={styles.quickStat}>
                 <span className={styles.quickStatLabel}>Pending Reviews</span>
-                <span className={styles.quickStatValue}>{stats.pendingApprovals}</span>
+                <span className={styles.quickStatValue}>{formatNumber(stats.pendingApprovals)}</span>
               </div>
               <div className={styles.quickStat}>
-                <span className={styles.quickStatLabel}>User Growth</span>
-                <span className={styles.quickStatValue}>{stats.userGrowth}%</span>
+                <span className={styles.quickStatLabel}>Average CTR</span>
+                <span className={styles.quickStatValue}>{formatPercent(stats.averageCtr, 2)}</span>
               </div>
             </div>
           </CardContent>
@@ -158,15 +182,15 @@ export function Dashboard() {
       </div>
 
       {breakdown && (
-        <Card style={{ marginTop: 'var(--space-12, 24px)' }}>
+        <Card className={styles.breakdownCard}>
           <CardHeader>
             <CardTitle>Where Ads Are Shown</CardTitle>
           </CardHeader>
           <CardContent>
-            <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-              <BreakdownTable title="By Platform" buckets={breakdown.byPlatform} />
-              <BreakdownTable title="By Format" buckets={breakdown.byFormat} />
-              <BreakdownTable title="By Location" buckets={breakdown.byLocation} />
+            <div className={styles.breakdownGrid}>
+              <BreakdownChart title="By Platform" buckets={breakdown.byPlatform} />
+              <BreakdownChart title="By Format" buckets={breakdown.byFormat} />
+              <BreakdownChart title="By Location" buckets={breakdown.byLocation} />
             </div>
           </CardContent>
         </Card>

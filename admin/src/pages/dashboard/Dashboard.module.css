@@ -265,3 +265,31 @@
     background-position: -200% 0;
   }
 }
+
+/* Ad-delivery breakdown charts */
+.breakdownCard {
+  margin-top: var(--space-12);
+}
+
+.breakdownGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-16);
+}
+
+.breakdownColumn {
+  min-width: 0;
+}
+
+.breakdownTitle {
+  margin: 0 0 var(--space-8) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.breakdownEmpty {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}

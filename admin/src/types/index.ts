@@ -72,14 +72,15 @@ export interface AdminSettings {
 
 export interface DashboardStats {
   totalUsers: number;
-  activeUsers: number;
+  newUsersThisMonth: number;
   totalCampaigns: number;
   activeCampaigns: number;
-  totalRevenue: number;
   pendingApprovals: number;
-  userGrowth: number;
-  campaignGrowth: number;
-  revenueGrowth: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+  totalImpressions: number;
+  totalClicks: number;
+  averageCtr: number;
 }
 
 export interface Activity {
