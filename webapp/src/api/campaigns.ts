@@ -104,7 +104,7 @@ export interface CampaignSummary {
   endDate: string;
   isActive: boolean;
   status: 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'draft' | 'rejected';
-  adFormat: 'Banner' | 'Interstitial' | 'Push';
+  adFormat: 'BANNER' | 'INTERSTITIAL' | 'PUSH';
   budget: number;
   spent: number;
   impressions: number;
@@ -282,7 +282,7 @@ function mapCampaignSummary(dto: BackendCampaignDTO): CampaignSummary {
     endDate: toDateString(dto.endDate),
     isActive: status === 'active',
     status: status as CampaignSummary['status'],
-    adFormat: dto.adFormat as CampaignSummary['adFormat'],
+    adFormat: (dto.adFormat || '').toUpperCase() as CampaignSummary['adFormat'],
     budget: Number(dto.budget) || 0,
     spent: Number(dto.spent) || 0,
     impressions: Number(dto.impressions) || 0,

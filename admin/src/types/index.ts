@@ -29,9 +29,9 @@ export interface Campaign {
   userId: string;
   userName: string;
   status: 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'rejected' | 'draft';
-  adType: 'user' | 'event' | 'brand';
-  adFormat: 'banner' | 'interstitial' | 'push';
-  boostType: 'standard' | 'premium';
+  adType: 'USER' | 'EVENT' | 'BRAND';
+  adFormat: 'BANNER' | 'INTERSTITIAL' | 'PUSH';
+  boostType: 'STANDARD' | 'PREMIUM';
   bannerImage: string | null;
   destinationUrl: string | null;
   budget: number;

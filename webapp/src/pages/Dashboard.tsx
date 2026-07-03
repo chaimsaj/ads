@@ -39,7 +39,7 @@ interface Campaign {
   endDate: string;
   isActive: boolean;
   status: 'active' | 'paused' | 'scheduled' | 'completed' | 'review' | 'draft' | 'rejected';
-  adFormat: 'Banner' | 'Interstitial' | 'Push';
+  adFormat: 'BANNER' | 'INTERSTITIAL' | 'PUSH';
   budget: number;
   impressions: number;
   clicks: number;
@@ -50,7 +50,7 @@ type SortField = 'id' | 'name' | 'startDate' | 'isActive' | 'status' | 'adFormat
 type SortDirection = 'asc' | 'desc';
 
 const statusOptions = ['all', 'active', 'paused', 'scheduled', 'completed', 'review', 'draft', 'rejected'] as const;
-const formatOptions = ['all', 'Banner', 'Interstitial', 'Push'] as const;
+const formatOptions = ['all', 'BANNER', 'INTERSTITIAL', 'PUSH'] as const;
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -390,9 +390,9 @@ export function Dashboard() {
       const detail = await campaignsApi.getById(campaignId);
       const wizardData = {
         name: `${detail.name} (Copy)`,
-        adType: detail.adType || 'brand',
-        boostType: detail.boostType || '',
-        adFormat: detail.adFormat || 'banner',
+        adType: (detail.adType || 'brand').toLowerCase(),
+        boostType: (detail.boostType || '').toLowerCase(),
+        adFormat: (detail.adFormat || 'banner').toLowerCase(),
         adText: detail.adText || '',
         link: detail.adLink || '',
         hasBanner: !!detail.bannerImage,

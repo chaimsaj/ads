@@ -124,7 +124,7 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
           <div className={styles.badges}>
             <Badge variant="default">{titleCase(campaign.adType)}</Badge>
             <Badge variant="default">{titleCase(campaign.adFormat)}</Badge>
-            <Badge variant={campaign.boostType === 'premium' ? 'warning' : 'default'}>
+            <Badge variant={campaign.boostType === 'PREMIUM' ? 'warning' : 'default'}>
               {titleCase(campaign.boostType)}
             </Badge>
           </div>
