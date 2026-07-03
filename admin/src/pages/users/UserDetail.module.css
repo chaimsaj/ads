@@ -131,3 +131,45 @@
     align-items: flex-start;
   }
 }
+
+/* User campaigns tab */
+.campaignsTableWrapper {
+  overflow-x: auto;
+}
+
+.campaignsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.campaignsTable th {
+  text-align: left;
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.campaignsTable td {
+  padding: var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.campaignsTable .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.campaignName {
+  font-weight: var(--font-medium);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

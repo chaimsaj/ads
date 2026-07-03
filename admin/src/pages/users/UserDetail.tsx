@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Mail, Calendar, CreditCard, Megaphone, User as UserIcon } from 'lucide-react';
 import { Modal, ModalFooter, Button, Input, StatusBadge, Tabs } from '../../components/ui';
 import { usersApi } from '../../api/users';
+import { campaignsApi } from '../../api/campaigns';
 import { useToast } from '../../context/ToastContext';
 import { isApiError } from '../../api/client';
-import { formatCurrency, formatDate, formatDateTime, titleCase } from '../../utils/formatters';
-import type { User } from '../../types';
+import { formatCurrency, formatDate, formatDateTime, formatNumber, formatPercent, titleCase } from '../../utils/formatters';
+import type { User, Campaign } from '../../types';
 import styles from './UserDetail.module.css';
 
 interface UserDetailProps {
@@ -22,6 +23,8 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
   const [isSaving, setIsSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', role: '' as User['role'] });
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
     if (!userId) return;
@@ -39,11 +42,25 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
     }
   }, [userId, toast, onClose]);
 
+  const fetchCampaigns = useCallback(async () => {
+    if (!userId) return;
+    setCampaignsLoading(true);
+    try {
+      const result = await campaignsApi.getAll({ userId, limit: 50, sortBy: 'createdAt', sortOrder: 'desc' });
+      setCampaigns(result.data);
+    } catch {
+      setCampaigns([]);
+    } finally {
+      setCampaignsLoading(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
     if (isOpen && userId) {
       fetchUser();
+      fetchCampaigns();
     }
-  }, [isOpen, userId, fetchUser]);
+  }, [isOpen, userId, fetchUser, fetchCampaigns]);
 
   const handleSave = async () => {
     if (!userId) return;
@@ -156,11 +173,44 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
       ) : null,
     },
     {
-      id: 'activity',
-      label: 'Activity',
+      id: 'campaigns',
+      label: `Campaigns${campaigns.length ? ` (${campaigns.length})` : ''}`,
       content: (
         <div className={styles.activity}>
-          <p className={styles.placeholder}>User activity history coming soon...</p>
+          {campaignsLoading ? (
+            <p className={styles.placeholder}>Loading campaigns…</p>
+          ) : campaigns.length === 0 ? (
+            <p className={styles.placeholder}>This user has no campaigns yet.</p>
+          ) : (
+            <div className={styles.campaignsTableWrapper}>
+              <table className={styles.campaignsTable}>
+                <thead>
+                  <tr>
+                    <th>Campaign</th>
+                    <th>Status</th>
+                    <th className={styles.num}>Budget</th>
+                    <th className={styles.num}>Spent</th>
+                    <th className={styles.num}>Impr.</th>
+                    <th className={styles.num}>Clicks</th>
+                    <th className={styles.num}>CTR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.map((c) => (
+                    <tr key={c.id}>
+                      <td className={styles.campaignName}>{c.name}</td>
+                      <td><StatusBadge status={c.status} /></td>
+                      <td className={styles.num}>{formatCurrency(c.budget)}</td>
+                      <td className={styles.num}>{formatCurrency(c.spent)}</td>
+                      <td className={styles.num}>{formatNumber(c.impressions)}</td>
+                      <td className={styles.num}>{formatNumber(c.clicks)}</td>
+                      <td className={styles.num}>{formatPercent(c.ctr)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       ),
     },
