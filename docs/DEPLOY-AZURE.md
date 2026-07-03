@@ -1,44 +1,32 @@
-# Deploying admin & webapp to Azure Web Apps
+# Deploying admin & webapp to Azure
 
-Both front-ends are static Vite SPAs deployed to their **own** Azure Web App (Linux, **Node 24**) via
-GitHub Actions on push to `master`:
+Both SPAs deploy **directly via publish profile** (no GitHub Actions):
 
-| App | Directory | Azure Web App | Workflow | Publish-profile secret |
-|-----|-----------|---------------|----------|------------------------|
-| Advertiser | `webapp/` | `myngly-ads-webapp` | [deploy-webapp-azure.yml](../.github/workflows/deploy-webapp-azure.yml) | `AZURE_WEBAPP_PUBLISH_PROFILE` |
-| Admin | `admin/` | `myngly-ads-admin` | [deploy-admin-azure.yml](../.github/workflows/deploy-admin-azure.yml) | `AZURE_ADMIN_PUBLISH_PROFILE` |
+```bash
+scripts/deploy-spa.sh webapp    # → myngly-ads-webapp   (uses ~/Downloads/myngly-ads-webapp.PublishSettings)
+scripts/deploy-spa.sh admin     # → myngly-ads-admin    (uses ~/Downloads/myngly-ads-admin.PublishSettings)
+```
 
-They deploy independently (each workflow triggers only on its own folder's changes), per the app-independence rule.
+The script builds the app, packages `dist/` + a zero-dependency `server.mjs` (SPA fallback) + a minimal
+`package.json`, and zip-deploys to the App Service Kudu endpoint using the profile's ZipDeploy credentials.
+The profile is read at runtime and never committed. Requires SCM Basic Auth on the App Service.
 
-## How it works
+| App | Azure Web App (Central US) | `VITE_API_URL` (baked at build) |
+|-----|----------------------------|--------------------------------|
+| webapp | `myngly-ads-webapp` | `…cndwgddyfjf2eqcr.centralus-01…/api` |
+| admin  | `myngly-ads-admin`  | `…cndwgddyfjf2eqcr.centralus-01…` |
 
-A Node App Service must run a process that listens on `$PORT` — it does not serve static files by itself
-like IIS. So each workflow:
-1. `npm ci` + `npm run build` (Node 24) → `dist/`.
-2. Assembles a deploy package = `dist/` + a **zero-dependency** `server.mjs` (Node `http` static server
-   with **SPA fallback** to `index.html`, correct MIME types, immutable caching for hashed assets,
-   `no-cache` for `index.html`, and a path-traversal guard) + a minimal `package.json` (`start: node server.mjs`).
-3. Deploys with `azure/webapps-deploy@v3` (publish profile), startup command `node server.mjs`.
+## ⚠️ One-time App Service setup (per SPA)
 
-The SPA fallback is essential: without it, refreshing a client-side route (e.g. `/campaigns/123`) 404s.
+A Linux **Node 24** App Service must be told how to run the static host, or client-side deep links 404 on
+refresh. In the Portal → each App Service → **Configuration → General settings → Startup Command**:
 
-## One-time setup (per app)
+```
+node server.mjs
+```
 
-1. **Publish profile secret** — Azure Portal → the App Service → **Get publish profile**; add it to GitHub
-   (Settings → Secrets and variables → Actions) under the secret name in the table above. Enable SCM Basic
-   Auth publishing on the App Service if disabled.
-2. **Stack** — Node 24 LTS (Linux).
-3. **`VITE_API_URL`** — baked into the bundle at build time from each app's committed `.env.production`;
-   it must point at the Ads API host (`myngly-ads-api…azurewebsites.net`). These are public values, not
-   secrets. To change the API URL, edit `.env.production` and redeploy.
+Save (it restarts). After that, `/` and every client route (e.g. `/dashboard`, `/campaigns/123`) serve the
+SPA. Without it, Azure serves the folder statically and deep routes 404.
 
-## Notes
-
-- Triggers on `master`; day-to-day work is on `develop`, so the workflows must be **merged to `master`**
-  for the push trigger to fire (`workflow_dispatch` also needs them on the default branch).
-- No runtime environment variables/secrets are needed on the App Services for the SPAs — everything is
-  static. Only the API service needs server-side app settings.
-
-## Note on Azure's auto-generated workflows
-
-Azure Deployment Center had generated OIDC workflows `master_myngly-ads-admin.yml` / `master_myngly-ads-webapp.yml` that ran `npm install && npm run build` at the **repo root** (there is no root `package.json`) and deployed `.` with no static server — they do **not** work for this two-app repo. They were removed in favor of the per-app publish-profile workflows above. The leftover `AZUREAPPSERVICE_*` OIDC secrets are unused and can be deleted.
+GitHub Actions is not used (Azure's generated OIDC workflows built at the repo root — no root package.json —
+and were removed). Disable Actions in repo Settings to turn it fully off.
