@@ -8,9 +8,10 @@ Documentation for the Myngly advertising platform monorepo. All docs live here u
 |-----------|------------|--------|
 | [`admin/`](../admin) | Back-office admin panel (React 19 + TS + Vite) | Active |
 | [`webapp/`](../webapp) | Advertiser web app — campaign-creation wizard (React 19 + TS + Vite) | Active |
-| `legacy/` | Node/Express + Prisma + MongoDB backend ("unified API") | Deprioritized |
 
-Both front-ends talk to the unified API over `VITE_API_URL` (cookie-based auth + CSRF).
+Both front-ends talk to the **`myngly-microservices`** Ads gateway over `VITE_API_URL` with Bearer-JWT
+auth. The old `legacy/` unified API was decommissioned on 2026-07-03 — see
+[`legacy-decommission.md`](legacy-decommission.md).
 
 ## Docs
 

@@ -1,5 +1,0 @@
-export const BCRYPT_ROUNDS = 12;
-export const MAX_LOGIN_ATTEMPTS = 5;
-export const LOCKOUT_DURATION_MINUTES = 15;
-export const VERIFICATION_CODE_EXPIRY_MINUTES = 30;
-export const PASSWORD_RESET_EXPIRY_MINUTES = 60;

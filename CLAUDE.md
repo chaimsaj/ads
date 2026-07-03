@@ -10,7 +10,10 @@ Guidance for AI assistants (and humans) working in this repository. Read this fi
    ```bash
    grep -rn "webapp" admin/src ; grep -rn "admin/" webapp/src   # must return nothing meaningful
    ```
-2. **Do not analyze, modify, run, or reference `legacy/`.** It is out of scope. (It is the old Node/Express + Prisma + MongoDB backend, deprioritized.)
+2. **The `legacy/` unified API has been removed** (decommissioned 2026-07-03; superseded by the
+   `myngly-microservices` backend). See [`docs/legacy-decommission.md`](docs/legacy-decommission.md). Do
+   not re-introduce it. The front-ends talk to the microservices Ads gateway (`/api/v1/ads-advertiser`,
+   `/api/v1/ads-admin`) with Bearer JWT.
 3. **Everything in professional English, 100%** — code, identifiers, comments, commit messages, docs, PR text, and every detail of the session logs. (Prompts may arrive in Spanish; always respond and write artifacts in clear, professional English.)
 4. **All documentation lives in [`/docs`](docs).** Do not scatter docs inside app folders. `/docs` is the source of truth.
 5. **Log every working session** under [`/docs/sessions`](docs/sessions) — see §6.
@@ -20,15 +23,17 @@ Guidance for AI assistants (and humans) working in this repository. Read this fi
 
 ## 1. What this repo is
 
-`myngly-ads` is the Myngly advertising platform. It contains three top-level apps:
+`myngly-ads` is the Myngly advertising platform. It contains two SPA front-ends:
 
 | Directory | What it is | Status |
 |-----------|------------|--------|
 | `admin/` | Back-office **admin panel** (manage users, campaigns, Stripe payments, SendGrid emails, settings) | Active |
 | `webapp/` | **Advertiser app** — campaign-creation wizard, dashboard, auth, settings | Active |
-| `legacy/` | Old unified API backend (Node/Express + Prisma + MongoDB) | **Out of scope — do not touch** |
 
-`admin` and `webapp` are SPA front-ends that talk to the unified API over HTTP (cookie-based auth + CSRF), configured via `VITE_API_URL`.
+Both front-ends talk to the **`myngly-microservices`** Ads gateway over HTTP with Bearer-JWT auth. The
+old `legacy/` unified API was decommissioned on 2026-07-03 — see [`docs/legacy-decommission.md`](docs/legacy-decommission.md).
+
+`admin` and `webapp` are SPA front-ends that talk to the microservices Ads gateway over HTTP (Bearer-JWT auth), configured via `VITE_API_URL`.
 
 Detailed structure: [`docs/architecture.md`](docs/architecture.md). Latest structural validation: [`docs/structure-validation.md`](docs/structure-validation.md).
 
@@ -90,7 +95,7 @@ npm run test:coverage  # Vitest + coverage (80% thresholds)
 npm run test:e2e       # Playwright
 ```
 
-Both apps expect the unified API reachable at `VITE_API_URL` (default `http://localhost:3000`). The API itself is not part of admin/webapp scope.
+Both apps expect the microservices Ads gateway reachable at `VITE_API_URL` (default `http://localhost:3000`). The gateway/backend itself is not part of admin/webapp scope.
 
 Production env lives in each app's `.env.production` (committed; `VITE_*` values are public — they are inlined into the client bundle). Local overrides go in `.env.local` (gitignored).
 
