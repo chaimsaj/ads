@@ -22,6 +22,7 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
   const toast = useToast();
   const { hasPermission } = useAuth();
   const canApprove = hasPermission(PERMISSIONS.CAMPAIGNS_APPROVE);
+  const canModerate = hasPermission(PERMISSIONS.CAMPAIGNS_WRITE);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [rejectReason, setRejectReason] = useState('');
@@ -72,6 +73,19 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
       fetchCampaign();
     } catch (err) {
       const message = isApiError(err) ? err.message : 'Failed to reject campaign';
+      toast.error(message);
+    }
+  };
+
+  const handleSetStatus = async (status: 'active' | 'paused') => {
+    if (!campaignId) return;
+    try {
+      await campaignsApi.updateStatus(campaignId, status);
+      toast.success(status === 'paused' ? 'Campaign paused' : 'Campaign resumed');
+      onUpdate();
+      fetchCampaign();
+    } catch (err) {
+      const message = isApiError(err) ? err.message : 'Failed to update campaign status';
       toast.error(message);
     }
   };
@@ -273,6 +287,12 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
       )}
       <ModalFooter>
         <Button variant="outline" onClick={onClose}>Close</Button>
+        {campaign?.status === 'active' && canModerate && (
+          <Button variant="outline" onClick={() => handleSetStatus('paused')}>Pause</Button>
+        )}
+        {campaign?.status === 'paused' && canModerate && (
+          <Button onClick={() => handleSetStatus('active')}>Resume</Button>
+        )}
         {campaign?.status === 'review' && canApprove && (
           <>
             {showRejectForm ? (
