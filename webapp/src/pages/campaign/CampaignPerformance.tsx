@@ -37,7 +37,7 @@ function DeltaPill({ pct, invert = false }: { pct: number; invert?: boolean }) {
   const Icon = rounded >= 0 ? TrendingUp : TrendingDown;
   return (
     <span className={`${styles.delta} ${cls}`}>
-      <Icon size={12} />
+      {!neutral && <Icon size={12} />}
       {rounded > 0 ? '+' : ''}{rounded}%
     </span>
   );
@@ -370,7 +370,7 @@ export function CampaignPerformance() {
           <div className={styles.section}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 className={styles.sectionTitle}>Conversion Funnel</h2>
-              {(summary.status === 'DRAFT' || summary.status === 'ACTIVE') && (
+              {(summary.status === 'draft' || summary.status === 'active') && (
                 <Link
                   to={`/campaign/${id}/tracking`}
                   style={{
