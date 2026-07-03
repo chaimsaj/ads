@@ -28,5 +28,5 @@ node server.mjs
 Save (it restarts). After that, `/` and every client route (e.g. `/dashboard`, `/campaigns/123`) serve the
 SPA. Without it, Azure serves the folder statically and deep routes 404.
 
-GitHub Actions is not used (Azure's generated OIDC workflows built at the repo root — no root package.json —
+GitHub Actions is DISABLED at the repo level so nothing deploys on merge to master; work stays on `develop`. It is not used (Azure's generated OIDC workflows built at the repo root — no root package.json —
 and were removed). Disable Actions in repo Settings to turn it fully off.
