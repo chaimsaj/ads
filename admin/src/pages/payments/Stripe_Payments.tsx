@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/Input'
 import { Badge } from '../../components/ui/Badge'
 import { Modal } from '../../components/ui/Modal'
 import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
 import stripePaymentsApi, {
   type StripeBalance,
   type StripePaymentStats,
@@ -30,6 +31,9 @@ type TabId = 'overview' | 'transactions' | 'disputes'
 
 export function StripePayments() {
   const toast = useToast()
+  const { user } = useAuth()
+  // Refunds are a governance action (backend requires the super-admin/governance policy).
+  const canRefund = user?.role === 'super_admin'
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [loading, setLoading] = useState(true)
 
@@ -407,10 +411,11 @@ export function StripePayments() {
                       <td>{tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : '-'}</td>
                       <td>
                         <div className={styles.actions}>
-                          {tx.status === 'completed' && (
+                          {tx.status === 'completed' && canRefund && (
                             <Button
                               size="sm"
                               variant="ghost"
+                              title="Refund"
                               onClick={() => {
                                 setSelectedTransaction(tx)
                                 setIsRefundModalOpen(true)

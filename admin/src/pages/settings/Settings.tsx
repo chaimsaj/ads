@@ -3,12 +3,16 @@ import { Save, AlertTriangle, Globe, DollarSign, Shield, Bell, Database } from '
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, ConfirmDialog } from '../../components/ui';
 import { settingsApi } from '../../api/settings';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { PERMISSIONS } from '../../utils/permissions';
 import { isApiError } from '../../api/client';
 import type { AdminSettings } from '../../types';
 import styles from './Settings.module.css';
 
 export function Settings() {
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canWrite = hasPermission(PERMISSIONS.SETTINGS_WRITE);
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -99,7 +103,7 @@ export function Settings() {
           <h1 className={styles.title}>Settings</h1>
           <p className={styles.subtitle}>Manage your admin panel configuration</p>
         </div>
-        {hasChanges && (
+        {hasChanges && canWrite && (
           <Button leftIcon={<Save size={16} />} onClick={handleSave} loading={isSaving}>
             Save Changes
           </Button>
@@ -319,19 +323,21 @@ export function Settings() {
                     </div>
                   )}
 
-                  <div className={styles.dangerZone}>
-                    <h4>Danger Zone</h4>
-                    <p>These actions are irreversible. Please proceed with caution.</p>
-                    <div className={styles.dangerActions}>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => setDangerConfirm({ isOpen: true, action: 'purge-data', label: 'Purge All Data' })}
-                      >
-                        Purge All Data
-                      </Button>
+                  {canWrite && (
+                    <div className={styles.dangerZone}>
+                      <h4>Danger Zone</h4>
+                      <p>These actions are irreversible. Please proceed with caution.</p>
+                      <div className={styles.dangerActions}>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => setDangerConfirm({ isOpen: true, action: 'purge-data', label: 'Purge All Data' })}
+                        >
+                          Purge All Data
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

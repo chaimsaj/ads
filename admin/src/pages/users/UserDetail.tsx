@@ -4,6 +4,8 @@ import { Modal, ModalFooter, Button, Input, StatusBadge, Tabs } from '../../comp
 import { usersApi } from '../../api/users';
 import { campaignsApi } from '../../api/campaigns';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { PERMISSIONS } from '../../utils/permissions';
 import { isApiError } from '../../api/client';
 import { formatCurrency, formatDate, formatDateTime, formatNumber, formatPercent, titleCase } from '../../utils/formatters';
 import type { User, Campaign } from '../../types';
@@ -18,6 +20,8 @@ interface UserDetailProps {
 
 export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProps) {
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission(PERMISSIONS.USERS_WRITE);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -237,7 +241,7 @@ export function UserDetail({ userId, isOpen, onClose, onUpdate }: UserDetailProp
         ) : (
           <>
             <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button onClick={() => setEditMode(true)}>Edit User</Button>
+            {canEdit && <Button onClick={() => setEditMode(true)}>Edit User</Button>}
           </>
         )}
       </ModalFooter>

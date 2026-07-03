@@ -18,11 +18,17 @@ import { CampaignDetail } from './CampaignDetail';
 import { exportCampaignsToCSV } from '../../utils/export';
 import { formatCurrency, formatDate, formatPercent, titleCase } from '../../utils/formatters';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { PERMISSIONS } from '../../utils/permissions';
 import type { Campaign, TableColumn } from '../../types';
 import styles from './Campaigns.module.css';
 
 export function Campaigns() {
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canApprove = hasPermission(PERMISSIONS.CAMPAIGNS_APPROVE);
+  const canWrite = hasPermission(PERMISSIONS.CAMPAIGNS_WRITE);
+  const canDelete = hasPermission(PERMISSIONS.CAMPAIGNS_DELETE);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<Campaign['status'] | undefined>();
   const [formatFilter, setFormatFilter] = useState<Campaign['adFormat'] | undefined>();
@@ -175,7 +181,7 @@ export function Campaigns() {
           >
             <Eye size={16} />
           </button>
-          {campaign.status === 'review' && (
+          {campaign.status === 'review' && canApprove && (
             <>
               <button
                 className={`${styles.actionBtn} ${styles.approve}`}
@@ -193,13 +199,15 @@ export function Campaigns() {
               </button>
             </>
           )}
-          <button
-            className={styles.actionBtn}
-            title="Delete"
-            onClick={() => setConfirmDialog({ isOpen: true, action: 'delete', ids: [campaign.id] })}
-          >
-            <MoreVertical size={16} />
-          </button>
+          {canDelete && (
+            <button
+              className={styles.actionBtn}
+              title="Delete"
+              onClick={() => setConfirmDialog({ isOpen: true, action: 'delete', ids: [campaign.id] })}
+            >
+              <MoreVertical size={16} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -254,33 +262,39 @@ export function Campaigns() {
               {hasActiveFilters && <span className={styles.filterBadge}>!</span>}
             </button>
 
-            {selectedIds.size > 0 && (
+            {selectedIds.size > 0 && (canWrite || canDelete) && (
               <div className={styles.bulkActions}>
                 <Badge variant="primary">{selectedIds.size} selected</Badge>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  leftIcon={<Play size={14} />}
-                  onClick={() => handleBulkAction('activate')}
-                >
-                  Activate
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  leftIcon={<Pause size={14} />}
-                  onClick={() => handleBulkAction('pause')}
-                >
-                  Pause
-                </Button>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  leftIcon={<Trash2 size={14} />}
-                  onClick={() => handleBulkAction('delete')}
-                >
-                  Delete
-                </Button>
+                {canWrite && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      leftIcon={<Play size={14} />}
+                      onClick={() => handleBulkAction('activate')}
+                    >
+                      Activate
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      leftIcon={<Pause size={14} />}
+                      onClick={() => handleBulkAction('pause')}
+                    >
+                      Pause
+                    </Button>
+                  </>
+                )}
+                {canDelete && (
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    leftIcon={<Trash2 size={14} />}
+                    onClick={() => handleBulkAction('delete')}
+                  >
+                    Delete
+                  </Button>
+                )}
               </div>
             )}
           </div>

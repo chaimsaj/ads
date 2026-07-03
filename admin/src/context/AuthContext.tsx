@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { authApi } from '../api/auth';
 import { clearTokens, getAccessToken } from '../api/client';
+import { ROLE_PERMISSIONS } from '../utils/permissions';
 import type { AdminUser, LoginResult } from '../types';
 
 interface AuthContextType {
@@ -73,7 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
     if (user.role === 'super_admin') return true;
-    return user.permissions.includes(permission);
+    // The role is authoritative: derive the permission set from it, and also honor any
+    // explicit permissions the backend attaches (so RBAC works even if that list is empty).
+    const rolePermissions: readonly string[] = ROLE_PERMISSIONS[user.role] ?? [];
+    return rolePermissions.includes(permission) || user.permissions.includes(permission);
   };
 
   return (

@@ -4,6 +4,8 @@ import { Modal, ModalFooter, Button, StatusBadge, Badge, Tabs } from '../../comp
 import { TimeSeriesChart, type ChartSeries } from '../../components/charts';
 import { campaignsApi } from '../../api/campaigns';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { PERMISSIONS } from '../../utils/permissions';
 import { isApiError, mediaUrl } from '../../api/client';
 import { formatCurrency, formatNumber, formatPercent, formatDate, titleCase } from '../../utils/formatters';
 import type { Campaign } from '../../types';
@@ -18,6 +20,8 @@ interface CampaignDetailProps {
 
 export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: CampaignDetailProps) {
   const toast = useToast();
+  const { hasPermission } = useAuth();
+  const canApprove = hasPermission(PERMISSIONS.CAMPAIGNS_APPROVE);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [rejectReason, setRejectReason] = useState('');
@@ -269,7 +273,7 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
       )}
       <ModalFooter>
         <Button variant="outline" onClick={onClose}>Close</Button>
-        {campaign?.status === 'review' && (
+        {campaign?.status === 'review' && canApprove && (
           <>
             {showRejectForm ? (
               <>
