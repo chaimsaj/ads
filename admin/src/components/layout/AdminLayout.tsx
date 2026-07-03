@@ -17,7 +17,7 @@ export function AdminLayout() {
   return (
     <div className={styles.layout}>
       <Sidebar
-        collapsed={sidebarCollapsed}
+        collapsed={sidebarCollapsed && !mobileOpen}
         mobileOpen={mobileOpen}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         onMobileClose={() => setMobileOpen(false)}

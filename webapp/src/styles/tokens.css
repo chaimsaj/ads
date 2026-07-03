@@ -5,6 +5,11 @@
   --color-primary-700: #2d666f;
   --color-primary-600: #41757d;
   --color-primary-500: #4a7277;
+  /* Light primary tints (used by badges, hovers, subtle backgrounds). */
+  --color-primary-400: #6b8f93;
+  --color-primary-200: #c9dadb;
+  --color-primary-100: #e6eeef;
+  --color-primary-50: #f2f6f6;
 
   /* Secondary Colors - Cyan */
   --color-secondary-100: #eefcff;
@@ -25,6 +30,17 @@
   --color-gray-700: #828282;
   --color-gray-800: #4f4f4f;
   --color-gray-900: #222222;
+  /* Neutral aliases: several modules reference --color-neutral-* (same scale as gray). */
+  --color-neutral-50: var(--color-gray-50);
+  --color-neutral-100: var(--color-gray-100);
+  --color-neutral-200: var(--color-gray-200);
+  --color-neutral-300: var(--color-gray-300);
+  --color-neutral-400: var(--color-gray-400);
+  --color-neutral-500: var(--color-gray-500);
+  --color-neutral-600: var(--color-gray-600);
+  --color-neutral-700: var(--color-gray-700);
+  --color-neutral-800: var(--color-gray-800);
+  --color-neutral-900: var(--color-gray-900);
 
   /* Text Colors */
   --color-text-primary: #0a090c;

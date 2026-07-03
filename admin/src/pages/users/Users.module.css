@@ -38,7 +38,8 @@
 
 .searchWrapper {
   position: relative;
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
 }
 
 .searchIcon {
@@ -238,4 +239,51 @@
 .actionBtn:hover {
   background-color: var(--color-neutral-100);
   color: var(--color-neutral-700);
+}
+
+/* Responsive: stack the header and toolbar so nothing overflows on tablet/mobile. */
+@media (max-width: 768px) {
+  .users {
+    padding: var(--space-8);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-6);
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-6);
+  }
+
+  .searchWrapper {
+    max-width: none;
+  }
+
+  .toolbarActions {
+    flex-wrap: wrap;
+  }
+
+  .bulkActions {
+    flex-wrap: wrap;
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .filtersPanel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterSelect {
+    min-width: 0;
+    width: 100%;
+  }
 }

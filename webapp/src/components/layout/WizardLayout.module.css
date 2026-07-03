@@ -69,3 +69,14 @@
 .backLink:hover {
   color: var(--color-primary-900);
 }
+
+/* Reduce the wizard's side padding on phones so every step's form gets the full width. */
+@media (max-width: 480px) {
+  .main {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-6) var(--space-4);
+  }
+}

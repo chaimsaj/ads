@@ -355,6 +355,14 @@
 }
 
 @media (max-width: 1024px) {
+  /* Tablet: keep a comfortable two-up grid instead of one narrow centred column. */
+  .selectionGrid,
+  .formatGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
   .selectionGrid,
   .formatGrid {
     grid-template-columns: 1fr;

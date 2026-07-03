@@ -233,9 +233,10 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
                 <p style={{ fontSize: 13, color: '#8895a1' }}>No daily data yet for this campaign.</p>
               ) : (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140, padding: '0 2px' }}>
+                  <div style={{ overflowX: 'auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140, padding: '0 2px', minWidth: 'max-content' }}>
                     {days.map((d) => (
-                      <div key={d.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                      <div key={d.date} style={{ flex: 1, minWidth: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 120 }}>
                           <div title={`Impressions: ${d.impressions}`} style={{ width: 7, height: `${(d.impressions / max) * 120}px`, backgroundColor: '#0f766e', borderRadius: 2 }} />
                           <div title={`Clicks: ${d.clicks}`} style={{ width: 7, height: `${(d.clicks / max) * 120}px`, backgroundColor: '#5e8fd6', borderRadius: 2 }} />
@@ -243,6 +244,7 @@ export function CampaignDetail({ campaignId, isOpen, onClose, onUpdate }: Campai
                         <span style={{ fontSize: 10, color: '#8895a1' }}>{d.date.slice(5)}</span>
                       </div>
                     ))}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 12, color: '#52606d' }}>
                     <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: '#0f766e', marginRight: 6 }} />Impressions</span>
