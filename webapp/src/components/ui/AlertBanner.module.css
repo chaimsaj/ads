@@ -1,0 +1,8 @@
+.banner {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}

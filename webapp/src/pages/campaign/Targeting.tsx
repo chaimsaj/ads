@@ -56,13 +56,17 @@ export function Targeting() {
     setFormData((prev) => ({ ...prev, latitude: coords.lat, longitude: coords.lng }));
   }, []);
 
+  const dateRangeError = formData.startDate && formData.endDate && new Date(formData.endDate) <= new Date(formData.startDate)
+    ? 'End date must be after the start date.'
+    : undefined;
+
   return (
     <WizardLayout
       currentStep={2}
       totalSteps={3}
       onBack={handleBack}
       onNext={handleNext}
-      nextDisabled={!formData.address || !formData.startDate || !formData.endDate}
+      nextDisabled={!formData.address || !formData.startDate || !formData.endDate || !!dateRangeError}
       user={user || { name: '' }}
     >
       <div className={styles.container}>
@@ -139,6 +143,7 @@ export function Targeting() {
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  error={dateRangeError}
                 />
               </div>
             </div>

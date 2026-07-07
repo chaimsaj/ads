@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Upload, MapPin, Save, X, Loader, User, Calendar } from 'lucide-react';
 import { Header, Footer } from '../../components/layout';
-import { Button, Input } from '../../components/ui';
+import { Button, Input, AlertBanner, Badge } from '../../components/ui';
 import { campaignsApi } from '../../api/campaigns';
 import type { CampaignDetail } from '../../api/campaigns';
 import { apiClient, isApiError } from '../../api/client';
@@ -163,7 +163,7 @@ export function EditCampaign() {
     );
   }
 
-  if (error) {
+  if (error && !campaign) {
     return (
       <div className={styles.page}>
         <Header variant="dashboard" user={user || { name: '' }} />
@@ -191,6 +191,14 @@ export function EditCampaign() {
               <p className={styles.subtitle}>
                 Make changes to your campaign settings.
               </p>
+              {campaign && (
+                <div className={styles.typeLock}>
+                  <Badge variant="default">
+                    {adType === 'user' ? 'User Spotlight' : adType === 'event' ? 'Event Promotion' : 'Brand Campaign'}
+                  </Badge>
+                  <span className={styles.typeLockNote}>To change the campaign type, create a new campaign.</span>
+                </div>
+              )}
             </div>
             <div className={styles.headerActions}>
               <Button variant="outline" leftIcon={<X size={18} />} onClick={handleCancel}>
@@ -206,6 +214,8 @@ export function EditCampaign() {
               </Button>
             </div>
           </div>
+
+          {error && <AlertBanner message={error} />}
 
           <div className={styles.tabs}>
             {tabs.map((tab) => (
@@ -256,6 +266,11 @@ export function EditCampaign() {
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
+                            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                              setBannerError('Please upload a JPG or PNG image.');
+                              e.target.value = '';
+                              return;
+                            }
                             if (file.size > MAX_BANNER_BYTES) {
                               setBannerError('Image is too large. Please choose a file under 5 MB.');
                               e.target.value = '';

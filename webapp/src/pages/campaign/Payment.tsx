@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Plus } from 'lucide-react';
 import { WizardLayout } from '../../components/layout';
-import { Button } from '../../components/ui';
+import { Button, FieldError, AlertBanner } from '../../components/ui';
 import { stripePaymentsApi, type PaymentMethod } from '../../api';
 import { isApiError } from '../../api/client';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -99,8 +99,10 @@ export function Payment() {
     };
   }, [processAndReload]);
 
+  const budgetError = budget && parseFloat(budget) < 10 ? 'Minimum budget is $10.' : undefined;
+
   const handleSubmit = async () => {
-    if (!selectedCard || !budget) return;
+    if (!selectedCard || !budget || parseFloat(budget) < 10) return;
 
     setProcessing(true);
     setError(null);
@@ -181,7 +183,7 @@ export function Payment() {
       onBack={handleBack}
       onNext={handleSubmit}
       nextLabel={processing ? 'Processing...' : 'Submit Campaign'}
-      nextDisabled={!selectedCard || !budget || processing}
+      nextDisabled={!selectedCard || !budget || !!budgetError || processing}
       user={user || { name: '' }}
     >
       <div className={styles.container}>
@@ -192,11 +194,7 @@ export function Payment() {
           </p>
         </div>
 
-        {error && (
-          <div className={styles.errorAlert}>
-            {error}
-          </div>
-        )}
+        {error && <AlertBanner message={error} />}
 
         {savingCard && (
           <div className={styles.pollingAlert}>
@@ -224,6 +222,7 @@ export function Payment() {
               />
               <span className={styles.budgetSuffix}>USD</span>
             </div>
+            {budgetError && <FieldError message={budgetError} />}
 
             <div className={styles.budgetPresets}>
               {['50', '100', '250', '500'].map((amount) => (

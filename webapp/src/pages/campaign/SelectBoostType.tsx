@@ -32,12 +32,7 @@ export function SelectBoostType() {
   };
 
   const handleBack = () => {
-    const adType = existing.adType as string;
-    if (adType === 'user') {
-      navigate('/campaign/new/audience-targeting');
-    } else {
-      navigate('/campaign/new/search-user');
-    }
+    navigate('/campaign/new/audience-targeting');
   };
 
   const boostTypes = [

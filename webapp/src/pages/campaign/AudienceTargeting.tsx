@@ -82,13 +82,7 @@ export function AudienceTargeting() {
   };
 
   const handleBack = () => {
-    if (adType === 'event') {
-      navigate('/campaign/new/search-event');
-    } else if (adType === 'brand') {
-      navigate('/campaign/new/brand-details');
-    } else {
-      navigate('/campaign/new/search-user');
-    }
+    navigate(adType === 'brand' ? '/campaign/new/brand-details' : '/campaign/new');
   };
 
   return (

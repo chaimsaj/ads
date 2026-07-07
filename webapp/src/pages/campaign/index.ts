@@ -1,6 +1,4 @@
 export { SelectAdType } from './SelectAdType';
-export { SearchUser } from './SearchUser';
-export { SearchEvent } from './SearchEvent';
 export { BrandDetails } from './BrandDetails';
 export { AudienceTargeting } from './AudienceTargeting';
 export { SelectBoostType } from './SelectBoostType';

@@ -8,6 +8,8 @@ import type { CampaignEstimate } from '../../api/campaigns';
 import { isApiError } from '../../api/client';
 import { invalidate } from '../../lib/queryCache';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { clearWizardData } from '../../hooks/useCampaignWizard';
+import { AlertBanner } from '../../components/ui';
 import styles from './Review.module.css';
 
 function formatNumber(n: number): string {
@@ -123,7 +125,7 @@ export function Review() {
         paymentMethodId: wizardData.paymentMethodId || '',
       });
 
-      localStorage.removeItem('campaignWizard');
+      clearWizardData();
       invalidate('webapp:dashboard');
       setIsSubmitted(true);
     } catch (err) {
@@ -214,9 +216,7 @@ export function Review() {
           </p>
         </div>
 
-        {submitError && (
-          <div style={{ color: 'red', padding: '1rem', marginBottom: '1rem' }}>{submitError}</div>
-        )}
+        {submitError && <AlertBanner message={submitError} />}
 
         <div className={styles.sections}>
           <section className={styles.section}>

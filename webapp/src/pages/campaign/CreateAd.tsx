@@ -9,6 +9,17 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import styles from './CreateAd.module.css';
 
 const MAX_BANNER_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_BANNER_TYPES = ['image/jpeg', 'image/png'];
+
+function isValidUrl(value: string): boolean {
+  if (!value) return false;
+  try {
+    new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 type AdFormat = 'banner' | 'interstitial' | 'push';
 
@@ -65,6 +76,10 @@ export function CreateAd() {
     ? `https://${formData.link}`
     : formData.link;
 
+  const linkError = formData.link && !isValidUrl(formData.link)
+    ? 'Enter a valid URL, e.g. https://example.com'
+    : undefined;
+
   const handleNext = () => {
     saveWizardData({
       adText: formData.adText,
@@ -82,6 +97,11 @@ export function CreateAd() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!ACCEPTED_BANNER_TYPES.includes(file.type)) {
+      setUploadError('Please upload a JPG or PNG image.');
+      e.target.value = '';
+      return;
+    }
     if (file.size > MAX_BANNER_BYTES) {
       setUploadError('Image is too large. Please choose a file under 5 MB.');
       e.target.value = '';
@@ -107,7 +127,7 @@ export function CreateAd() {
       totalSteps={3}
       onBack={handleBack}
       onNext={handleNext}
-      nextDisabled={!formData.adText || !formData.link || isUploading}
+      nextDisabled={!formData.adText || !formData.link || !!linkError || isUploading}
       user={user || { name: '' }}
     >
       <div className={styles.container}>
@@ -161,6 +181,7 @@ export function CreateAd() {
                 placeholder="https://example.com"
                 value={formData.link}
                 onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                error={linkError}
               />
             </div>
           </div>
